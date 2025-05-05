@@ -8,37 +8,40 @@
 </head>
 <body>
 
-  <div class="wrapper">
+  <div class="container">
 
-    <!-- Sidebar utilisateurs -->
-    <div class="sidebar" id="sidebar">
-      <div class="profile">
+    <!-- Sidebar liste d'amis -->
+    <aside class="sidebar" id="sidebar">
+      <header class="sidebar-header">
         <img id="myAvatar" src="default-avatar.png" alt="PDP">
-        <span id="myName"></span>
-        <button id="logoutBtn">Déconnexion</button>
+        <span id="myName">Mon Nom</span>
+        <button id="logoutBtn">⎋</button>
+      </header>
+      <div class="search-box">
+        <input type="text" id="searchUser" placeholder="🔍 Rechercher un ami...">
       </div>
-      <input type="text" id="searchUser" placeholder="Rechercher un ami...">
-      <ul id="usersList"></ul>
-    </div>
+      <ul id="usersList" class="users-list"></ul>
+    </aside>
 
     <!-- Zone de chat -->
-    <div class="chat-area hidden" id="chatArea">
-      <div class="chat-header">
-        <button id="backBtn" class="back-btn">←</button>
+    <section class="chat-area hidden" id="chatArea">
+      <header class="chat-header">
+        <button class="back-btn" id="backBtn">←</button>
+        <img id="chatAvatar" src="" alt="PDP ami">
         <span id="chatWith">Sélectionne un ami</span>
-      </div>
+      </header>
       <div id="messages" class="messages"></div>
-      <div class="chat-input">
-        <input type="file" id="fileInput" accept="image/*,application/pdf">
+      <footer class="chat-footer">
+        <input type="file" id="fileInput" accept="image/*,application/pdf" title="Envoyer un fichier">
         <input type="text" id="msgInput" placeholder="Écrire un message...">
-        <button id="sendBtn">Envoyer</button>
-      </div>
-    </div>
+        <button id="sendBtn">➤</button>
+      </footer>
+    </section>
 
   </div>
 
-  <!-- Firebase & scripts -->
   <script type="module" src="firebase-config.js"></script>
+  <script type="module" src="auth.js"></script>
   <script type="module" src="chat.js"></script>
 </body>
 </html>
