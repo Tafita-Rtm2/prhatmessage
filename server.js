@@ -3,10 +3,10 @@ const express = require('express');
 const path = require('path');
 const app = express();
 
-// Sert tout le dossier public
+// Sert les fichiers statiques
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Redirige toutes les routes vers index.html (SPA)
+// Toutes les routes renvoient index.html
 app.get('*', (_, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
