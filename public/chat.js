@@ -1,164 +1,78 @@
-import { auth, db, storage } from './firebase-config.js';
-import {
-  onAuthStateChanged,
-  signOut
-} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  onSnapshot,
-  orderBy,
-  addDoc,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-import {
-  ref as sRef,
-  uploadBytes,
-  getDownloadURL
-} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
+// public/chat.js
+let currentUser = null;
+let selectedUser = null;
 
-// DOM elements
-const sidebar     = document.getElementById('sidebar');
-const chatArea    = document.getElementById('chatArea');
-const backBtn     = document.getElementById('backBtn');
-const usersList   = document.getElementById('usersList');
-const searchInput = document.getElementById('searchUser');
-const searchBtn   = document.getElementById('searchBtn');
-const myAvatar    = document.getElementById('myAvatar');
-const myName      = document.getElementById('myName');
-const logoutBtn   = document.getElementById('logoutBtn');
-const chatAvatar  = document.getElementById('chatAvatar');
-const chatWithEl  = document.getElementById('chatWith');
-const messagesEl  = document.getElementById('messages');
-const msgInput    = document.getElementById('msgInput');
-const sendBtn     = document.getElementById('sendBtn');
-const fileInput   = document.getElementById('fileInput');
-
-let currentUser, currentChatId, unsubscribeChat;
-
-// Déconnexion
-logoutBtn.onclick = () => {
-  signOut(auth);
-  sessionStorage.clear();
-  location.href = 'index.html';
-};
-
-// Recherche au clic
-searchBtn.onclick = () => {
-  loadUsers(searchInput.value.trim());
-};
-// Recherche à Enter
-searchInput.onkeypress = e => {
-  if (e.key === 'Enter') loadUsers(searchInput.value.trim());
-};
-
-// Auth listener
-onAuthStateChanged(auth, async user => {
-  if (!user) {
-    location.href = 'index.html';
-    return;
-  }
+auth.onAuthStateChanged(async user => {
+  if (!user) return window.location.href = "index.html";
   currentUser = user;
-  myName.innerText = user.displayName;
-  myAvatar.src = user.photoURL || 'default-avatar.png';
-  await loadUsers('');  // charge tous les utilisateurs au démarrage
+  document.getElementById('chatHeader').innerText = "Sélectionnez un utilisateur pour discuter";
 });
 
-// Charge et affiche les utilisateurs (avec filtre optionnel)
-async function loadUsers(filter = '') {
-  usersList.innerHTML = '';
-  const colRef = collection(db, 'users');
-  let q;
-  if (filter) {
-    q = query(colRef,
-      where('name', '>=', filter),
-      where('name', '<=', filter + '\uf8ff')
-    );
-  } else {
-    q = colRef;  // pas de filtre → tous
+async function searchUser() {
+  const email = document.getElementById("searchInput").value.trim();
+  const query = await db.collection("users").where("email", "==", email).get();
+
+  const usersList = document.getElementById("usersList");
+  usersList.innerHTML = "";
+
+  if (query.empty) {
+    usersList.innerHTML = "Aucun utilisateur trouvé.";
+    return;
   }
-  const snap = await getDocs(q);
-  snap.forEach(docSnap => {
-    const u = docSnap.data();
-    if (u.uid === currentUser.uid) return;
-    const li = document.createElement('li');
-    li.innerHTML = `<img src="${u.photoURL || 'default-avatar.png'}"><span>${u.name}</span>`;
-    li.onclick = () => selectUser(u);
-    usersList.appendChild(li);
+
+  query.forEach(doc => {
+    const data = doc.data();
+    if (data.uid === currentUser.uid) return;
+    const div = document.createElement("div");
+    div.innerHTML = `${data.name}<br><small>${data.email}</small>`;
+    div.onclick = () => openChat(data);
+    usersList.appendChild(div);
   });
 }
 
-// Ouvre un chat privé
-function selectUser(user) {
-  chatWithEl.innerText = user.name;
-  chatAvatar.src = user.photoURL || 'default-avatar.png';
-  currentChatId = [currentUser.uid, user.uid].sort().join('_');
+function getChatId(uid1, uid2) {
+  return [uid1, uid2].sort().join("_");
+}
 
-  // Mobile : bascule vues
-  if (window.innerWidth < 768) {
-    sidebar.classList.add('hidden');
-    chatArea.classList.remove('hidden');
-  }
+function openChat(user) {
+  selectedUser = user;
+  document.getElementById("chatHeader").innerText = "Chat avec " + user.name;
+  loadMessages();
+}
 
-  if (unsubscribeChat) unsubscribeChat();
-  const msgCol = collection(db, 'chats', currentChatId, 'messages');
-  const q = query(msgCol, orderBy('timestamp'));
-  unsubscribeChat = onSnapshot(q, snap => {
-    messagesEl.innerHTML = '';
-    snap.forEach(docSnap => {
-      const m = docSnap.data();
-      const div = document.createElement('div');
-      div.className = 'message ' + (m.sender === currentUser.uid ? 'me' : 'other');
-      if (m.type === 'text') {
-        div.textContent = m.text;
-      } else if (m.type === 'image') {
-        const img = document.createElement('img');
-        img.src = m.url;
-        img.style.maxWidth = '200px';
-        div.appendChild(img);
-      }
-      messagesEl.appendChild(div);
+function loadMessages() {
+  if (!selectedUser) return;
+  const chatId = getChatId(currentUser.uid, selectedUser.uid);
+  const chatRef = db.collection("chats").doc(chatId).collection("messages").orderBy("timestamp");
+
+  chatRef.onSnapshot(snapshot => {
+    const messagesContainer = document.getElementById("chatMessages");
+    messagesContainer.innerHTML = "";
+    snapshot.forEach(doc => {
+      const msg = doc.data();
+      const div = document.createElement("div");
+      div.className = "message";
+      div.style.alignSelf = msg.sender === currentUser.uid ? "flex-end" : "flex-start";
+      div.innerText = msg.text;
+      messagesContainer.appendChild(div);
     });
-    messagesEl.scrollTop = messagesEl.scrollHeight;
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
   });
 }
 
-// Bouton retour mobile
-backBtn.onclick = () => {
-  chatArea.classList.add('hidden');
-  sidebar.classList.remove('hidden');
-};
+async function sendMessage() {
+  const text = document.getElementById("messageInput").value;
+  if (!text || !selectedUser) return;
 
-// Envoi de message ou image
-sendBtn.onclick = async () => {
-  if (!currentChatId) return;
+  const chatId = getChatId(currentUser.uid, selectedUser.uid);
+  const msgRef = db.collection("chats").doc(chatId).collection("messages");
 
-  // Envoi d'image/fichier
-  if (fileInput.files.length) {
-    const file = fileInput.files[0];
-    const sref = sRef(storage, `chats/${currentChatId}/${Date.now()}_${file.name}`);
-    await uploadBytes(sref, file);
-    const url = await getDownloadURL(sref);
-    await addDoc(collection(db,'chats',currentChatId,'messages'), {
-      sender: currentUser.uid,
-      type: 'image',
-      url,
-      timestamp: serverTimestamp()
-    });
-    fileInput.value = '';
-  }
+  await msgRef.add({
+    sender: currentUser.uid,
+    receiver: selectedUser.uid,
+    text,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  });
 
-  // Envoi de texte
-  const text = msgInput.value.trim();
-  if (text) {
-    await addDoc(collection(db,'chats',currentChatId,'messages'), {
-      sender: currentUser.uid,
-      type: 'text',
-      text,
-      timestamp: serverTimestamp()
-    });
-    msgInput.value = '';
-  }
-};
+  document.getElementById("messageInput").value = "";
+}
