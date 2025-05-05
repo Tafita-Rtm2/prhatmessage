@@ -1,15 +1,14 @@
+// server.js
 const express = require('express');
-const app = express();
 const path = require('path');
+const app = express();
 
+// Sert tout le dossier public
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/', (_, res) => {
-  res.sendFile(path.join(__dirname, 'public/index.html'));
-});
-
-app.get('/chat', (_, res) => {
-  res.sendFile(path.join(__dirname, 'public/chat.html'));
+// Redirige toutes les routes vers index.html (SPA)
+app.get('*', (_, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 const PORT = process.env.PORT || 3000;
