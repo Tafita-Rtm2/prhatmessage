@@ -19,7 +19,7 @@ import {
   getDownloadURL
 } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 
-// DOM
+// DOM elements
 const sidebar     = document.getElementById('sidebar');
 const chatArea    = document.getElementById('chatArea');
 const backBtn     = document.getElementById('backBtn');
@@ -45,20 +45,16 @@ logoutBtn.onclick = () => {
   location.href = 'index.html';
 };
 
-// Déclenche recherche au clic
+// Recherche au clic
 searchBtn.onclick = () => {
-  const term = searchInput.value.trim();
-  loadUsers(term);
+  loadUsers(searchInput.value.trim());
 };
-
-// Recherche aussi au « Enter »
+// Recherche à Enter
 searchInput.onkeypress = e => {
-  if (e.key === 'Enter') {
-    loadUsers(searchInput.value.trim());
-  }
+  if (e.key === 'Enter') loadUsers(searchInput.value.trim());
 };
 
-// État Auth
+// Auth listener
 onAuthStateChanged(auth, async user => {
   if (!user) {
     location.href = 'index.html';
@@ -66,23 +62,29 @@ onAuthStateChanged(auth, async user => {
   }
   currentUser = user;
   myName.innerText = user.displayName;
-  myAvatar.src    = user.photoURL || 'default-avatar.png';
-  await loadUsers('');  // charge tout au démarrage
+  myAvatar.src = user.photoURL || 'default-avatar.png';
+  await loadUsers('');  // charge tous les utilisateurs au démarrage
 });
 
-// Charge et affiche les utilisateurs
+// Charge et affiche les utilisateurs (avec filtre optionnel)
 async function loadUsers(filter = '') {
   usersList.innerHTML = '';
-  const usersCol = collection(db, 'users');
-  const q = filter
-    ? query(usersCol, where('name','>=', filter), where('name','<=', filter + '\uf8ff'))
-    : usersCol;
+  const colRef = collection(db, 'users');
+  let q;
+  if (filter) {
+    q = query(colRef,
+      where('name', '>=', filter),
+      where('name', '<=', filter + '\uf8ff')
+    );
+  } else {
+    q = colRef;  // pas de filtre → tous
+  }
   const snap = await getDocs(q);
   snap.forEach(docSnap => {
     const u = docSnap.data();
     if (u.uid === currentUser.uid) return;
     const li = document.createElement('li');
-    li.innerHTML = `<img src="${u.photoURL||'default-avatar.png'}"><span>${u.name}</span>`;
+    li.innerHTML = `<img src="${u.photoURL || 'default-avatar.png'}"><span>${u.name}</span>`;
     li.onclick = () => selectUser(u);
     usersList.appendChild(li);
   });
@@ -91,9 +93,8 @@ async function loadUsers(filter = '') {
 // Ouvre un chat privé
 function selectUser(user) {
   chatWithEl.innerText = user.name;
-  chatAvatar.src      = user.photoURL || 'default-avatar.png';
-  const ids = [currentUser.uid, user.uid].sort().join('_');
-  currentChatId = ids;
+  chatAvatar.src = user.photoURL || 'default-avatar.png';
+  currentChatId = [currentUser.uid, user.uid].sort().join('_');
 
   // Mobile : bascule vues
   if (window.innerWidth < 768) {
@@ -102,8 +103,8 @@ function selectUser(user) {
   }
 
   if (unsubscribeChat) unsubscribeChat();
-  const col = collection(db, 'chats', currentChatId, 'messages');
-  const q = query(col, orderBy('timestamp'));
+  const msgCol = collection(db, 'chats', currentChatId, 'messages');
+  const q = query(msgCol, orderBy('timestamp'));
   unsubscribeChat = onSnapshot(q, snap => {
     messagesEl.innerHTML = '';
     snap.forEach(docSnap => {
@@ -130,11 +131,11 @@ backBtn.onclick = () => {
   sidebar.classList.remove('hidden');
 };
 
-// Envoi message ou image
+// Envoi de message ou image
 sendBtn.onclick = async () => {
   if (!currentChatId) return;
 
-  // Fichier/image
+  // Envoi d'image/fichier
   if (fileInput.files.length) {
     const file = fileInput.files[0];
     const sref = sRef(storage, `chats/${currentChatId}/${Date.now()}_${file.name}`);
@@ -149,7 +150,7 @@ sendBtn.onclick = async () => {
     fileInput.value = '';
   }
 
-  // Texte
+  // Envoi de texte
   const text = msgInput.value.trim();
   if (text) {
     await addDoc(collection(db,'chats',currentChatId,'messages'), {
