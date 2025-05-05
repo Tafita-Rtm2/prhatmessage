@@ -1,45 +1,25 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Web</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <title>Connexion</title>
+  <script type="module" src="auth.js"></script>
 </head>
 <body>
-    <div id="app">
-        <!-- Page de connexion / inscription -->
-        <div id="loginPage">
-            <h2>Connexion</h2>
-            <input type="email" id="email" placeholder="Email" required>
-            <input type="password" id="password" placeholder="Mot de passe" required>
-            <button id="loginBtn">Se connecter</button>
-            <button id="signupBtn">S'inscrire</button>
-        </div>
+  <h2>Connexion</h2>
+  <form id="loginForm">
+    <input type="email" id="email" placeholder="Email" required />
+    <input type="password" id="password" placeholder="Mot de passe" required />
+    <button type="submit">Se connecter</button>
+  </form>
 
-        <!-- Page de recherche d'utilisateur -->
-        <div id="searchPage" style="display: none;">
-            <h2>Rechercher un utilisateur</h2>
-            <input type="email" id="searchEmail" placeholder="Entrez l'email" required>
-            <button id="searchBtn">Rechercher</button>
-            <div id="userResults"></div>
-            <button id="logoutBtn">Déconnexion</button>
-        </div>
-
-        <!-- Page de chat -->
-        <div id="chatPage" style="display: none;">
-            <h2 id="chatWithUser">Chat avec</h2>
-            <div id="messages"></div>
-            <input type="text" id="messageInput" placeholder="Écrire un message..." required>
-            <button id="sendMessageBtn">Envoyer</button>
-            <button id="backToSearchBtn">Retour à la recherche</button>
-        </div>
-    </div>
-
-    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js"></script>
-    <script src="app.js"></script>
+  <h2>Inscription</h2>
+  <form id="registerForm">
+    <input type="text" id="name" placeholder="Nom" required />
+    <input type="email" id="regEmail" placeholder="Email" required />
+    <input type="password" id="regPassword" placeholder="Mot de passe" required />
+    <input type="file" id="profilePic" accept="image/*" />
+    <button type="submit">S'inscrire</button>
+  </form>
 </body>
 </html>
