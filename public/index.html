@@ -27,7 +27,7 @@
 
     <div id="chatContainer" class="chat-container" style="display: none;">
         <div id="topBar" class="top-bar">
-            <input type="text" id="searchInput" placeholder="Search users">
+            <input type="text" id="searchInput" placeholder="Search users by email or username">
             <button onclick="searchFriend()">Search</button>
             <button onclick="loadAllUsers()">All Users</button>
             <div id="currentUser" class="user-info"></div>
@@ -50,7 +50,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
-        import { getDatabase, ref, set, get, child, onChildAdded } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+        import { getDatabase, ref, set, get, child, onChildAdded, update } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
         import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-storage.js";
 
         const firebaseConfig = {
@@ -79,7 +79,10 @@
                 get(child(ref(db), "users/" + encodeEmail(currentUserEmail))).then(snapshot => {
                     if (snapshot.exists()) {
                         currentUsername = snapshot.val().username || currentUserEmail;
-                        document.getElementById("currentUser").textContent = `Logged in as ${currentUsername}`;
+                        const profilePicUrl = snapshot.val().photoURL;
+                        let displayText = `Logged in as ${currentUsername}`;
+                        if (profilePicUrl) displayText = `<img src="${profilePicUrl}" id="profilePicPreview"> ${displayText}`;
+                        document.getElementById("currentUser").innerHTML = displayText;
                         showChat();
                     }
                 });
@@ -103,6 +106,7 @@
                     photoURL = await getDownloadURL(picRef);
                 }
                 await set(ref(db, "users/" + encodeEmail(email)), { email, username, photoURL });
+                alert("Account created successfully. Please login.");
             } catch (e) {
                 alert(e.message);
             }
@@ -135,7 +139,7 @@
             get(child(ref(db), "users")).then(snapshot => {
                 snapshot.forEach(user => {
                     const data = user.val();
-                    if (data.email.toLowerCase().includes(input) || (data.username && data.username.toLowerCase().includes(input))) {
+                    if ((data.email.toLowerCase().includes(input) || (data.username && data.username.toLowerCase().includes(input))) && data.email !== currentUserEmail) {
                         const btn = document.createElement("button");
                         btn.textContent = `Chat with ${data.username || data.email}`;
                         btn.onclick = () => {
