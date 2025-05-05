@@ -1,189 +1,251 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
+
 <head>
   <meta charset="UTF-8">
-  <title>Chat App</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>RTM Messagerie</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Orbitron', sans-serif;
+      background: linear-gradient(to bottom right, #0f0c29, #302b63, #24243e);
+      color: #fff;
+    }
+
+    header {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 24px;
+    }
+
+    .user-list-icon {
+      cursor: pointer;
+    }
+
+    .container {
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    #authSection, #chatSection, #userListSection, #searchSection {
+      display: none;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 5px;
+    }
+
+    input[type="submit"], button {
+      background: #00c6ff;
+      color: white;
+      cursor: pointer;
+    }
+
+    .message {
+      margin: 10px 0;
+    }
+
+    .message.you {
+      text-align: right;
+      color: #0f0;
+    }
+
+    .message.other {
+      text-align: left;
+      color: #0ff;
+    }
+
+    .user-card {
+      background: rgba(255, 255, 255, 0.1);
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>RTM Futur Messenger</h1>
+    <div class="user-list-icon" onclick="showUserList()">👥</div>
+  </header>
+
+  <div class="container">
+    <div id="authSection">
+      <h2>Connexion / Inscription</h2>
+      <input type="email" id="email" placeholder="Adresse e-mail">
+      <input type="password" id="password" placeholder="Mot de passe">
+      <input type="text" id="pseudo" placeholder="Pseudo (si nouveau compte)">
+      <input type="submit" value="Connexion / Inscription" onclick="auth()">
+      <button onclick="resetPassword()">Mot de passe oublié</button>
+    </div>
+
+    <div id="searchSection">
+      <h3>Rechercher un ami</h3>
+      <input type="text" id="searchInput" placeholder="Email ou pseudo">
+      <button onclick="searchUser()">Rechercher</button>
+      <div id="searchResults"></div>
+    </div>
+
+    <div id="chatSection">
+      <h2 id="chatWith"></h2>
+      <div id="messages"></div>
+      <input type="text" id="msgInput" placeholder="Tapez votre message">
+      <button onclick="sendMessage()">Envoyer</button>
+    </div>
+
+    <div id="userListSection">
+      <h3>Utilisateurs du site</h3>
+      <div id="userList"></div>
+    </div>
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
-    import { getDatabase, ref, set, get, onChildAdded, onChildRemoved, remove, child } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
-    import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-storage.js";
+    import { getDatabase, ref, set, push, onChildAdded, get, child } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyCJ81pHD2-xnKczsJyrWwIZao-rypkeDOo",
-      authDomain: "coder-8ddcf.firebaseapp.com",
-      projectId: "coder-8ddcf",
-      storageBucket: "coder-8ddcf.appspot.com",
-      messagingSenderId: "603139974872",
-      appId: "1:603139974872:web:98026f933d6f421116d9ad"
+      apiKey: "AIzaSyCDbP-yKWXD4L1HowJt3ZSyEpMUMrzJZjI",
+      authDomain: "tafitafaceboot.firebaseapp.com",
+      databaseURL: "https://tafitafaceboot-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "tafitafaceboot",
+      storageBucket: "tafitafaceboot.appspot.com",
+      messagingSenderId: "893787639070",
+      appId: "1:893787639070:web:e5dd2798f3cb2b6fa24d0f",
+      measurementId: "G-H64J1YYPYE"
     };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
     const db = getDatabase(app);
-    const storage = getStorage(app);
+    const auth = getAuth();
 
-    const loginForm = document.getElementById('loginForm');
-    const registerForm = document.getElementById('registerForm');
-    const chatInterface = document.getElementById('chatInterface');
-    const msgTxt = document.getElementById('msgTxt');
+    const authSection = document.getElementById('authSection');
+    const chatSection = document.getElementById('chatSection');
+    const searchSection = document.getElementById('searchSection');
+    const userListSection = document.getElementById('userListSection');
     const messages = document.getElementById('messages');
-    const receiverInput = document.getElementById('receiverName');
-    const usersList = document.getElementById('allUsersList');
-    const profilePicInput = document.getElementById('profilePic');
-
+    const chatWith = document.getElementById('chatWith');
     let currentUser = null;
-    let currentPseudo = null;
-    let receiver = "";
+    let currentChat = null;
 
-    function getChatId(user1, user2) {
-      return [user1, user2].sort().join("-");
-    }
-
-    function renderMessage(data, senderId) {
-      const msg = data.val();
-      const who = msg.sender === senderId ? "You" : msg.pseudo;
-      const css = msg.sender === senderId ? "me" : "notMe";
-      const el = document.createElement('div');
-      el.className = "outer";
-      el.id = data.key;
-      el.innerHTML = `<div class="${css}">${who}: ${msg.msg} ${(msg.sender === senderId) ? `<button onclick="deleteMsg('${getChatId(senderId, receiver)}', '${data.key}')">DELETE</button>` : ""}</div>`;
-      messages.appendChild(el);
-      messages.scrollTop = messages.scrollHeight;
-    }
-
-    function loadConversation() {
-      messages.innerHTML = "";
-      const chatId = getChatId(currentUser.uid, receiver);
-      const chatRef = ref(db, "privateMessages/" + chatId);
-
-      onChildAdded(chatRef, (data) => {
-        renderMessage(data, currentUser.uid);
-      });
-
-      onChildRemoved(chatRef, (data) => {
-        const el = document.getElementById(data.key);
-        if (el) el.remove();
-      });
-    }
-
-    window.deleteMsg = function(chatId, key) {
-      remove(ref(db, `privateMessages/${chatId}/${key}`));
-    }
-
-    window.sendMsg = function() {
-      if (!receiver) return alert("Please select a user to chat with");
-      const text = msgTxt.value.trim();
-      if (!text) return;
-
-      const chatId = getChatId(currentUser.uid, receiver);
-      const timestamp = new Date().getTime();
-      set(ref(db, `privateMessages/${chatId}/${timestamp}`), {
-        msg: text,
-        sender: currentUser.uid,
-        pseudo: currentPseudo
-      });
-      msgTxt.value = "";
-    }
-
-    loginForm.onsubmit = (e) => {
-      e.preventDefault();
-      const email = loginForm.email.value;
-      const password = loginForm.password.value;
-      signInWithEmailAndPassword(auth, email, password)
-        .catch(err => alert(err.message));
-    };
-
-    registerForm.onsubmit = async (e) => {
-      e.preventDefault();
-      const email = registerForm.email.value;
-      const password = registerForm.password.value;
-      const pseudo = registerForm.pseudo.value;
-      const file = profilePicInput.files[0];
-
-      try {
-        const userCred = await createUserWithEmailAndPassword(auth, email, password);
-        const uid = userCred.user.uid;
-        let photoURL = "";
-
-        if (file) {
-          const fileRef = sRef(storage, `profiles/${uid}`);
-          await uploadBytes(fileRef, file);
-          photoURL = await getDownloadURL(fileRef);
-        }
-
-        await set(ref(db, `users/${uid}`), { email, pseudo, photoURL });
-      } catch (err) {
-        alert(err.message);
-      }
-    };
-
-    document.getElementById('resetPass').onclick = () => {
-      const email = prompt("Enter your email to reset password");
-      if (email) sendPasswordResetEmail(auth, email).then(() => alert("Email sent"));
-    };
-
-    onAuthStateChanged(auth, async (user) => {
+    onAuthStateChanged(auth, user => {
       if (user) {
         currentUser = user;
-        const snap = await get(ref(db, `users/${user.uid}`));
-        currentPseudo = snap.val().pseudo;
-        loginForm.style.display = "none";
-        registerForm.style.display = "none";
-        chatInterface.style.display = "block";
-        loadAllUsers();
+        authSection.style.display = 'none';
+        searchSection.style.display = 'block';
+        loadUserList();
+      } else {
+        authSection.style.display = 'block';
+        searchSection.style.display = 'none';
+        chatSection.style.display = 'none';
       }
     });
 
-    function loadAllUsers() {
-      get(ref(db, 'users')).then(snapshot => {
-        usersList.innerHTML = "";
-        snapshot.forEach(child => {
-          const u = child.val();
-          if (child.key !== currentUser.uid) {
-            const btn = document.createElement('button');
-            btn.textContent = u.pseudo;
-            btn.onclick = () => {
-              receiver = child.key;
-              loadConversation();
-            };
-            usersList.appendChild(btn);
-          }
+    window.auth = async function() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const pseudo = document.getElementById('pseudo').value;
+      try {
+        const result = await signInWithEmailAndPassword(auth, email, password);
+      } catch (e) {
+        const result = await createUserWithEmailAndPassword(auth, email, password);
+        set(ref(db, 'users/' + result.user.uid), {
+          email: email,
+          pseudo: pseudo || email.split('@')[0],
+          uid: result.user.uid
         });
+      }
+    }
+
+    window.resetPassword = function() {
+      const email = document.getElementById('email').value;
+      if (!email) return alert("Entrez votre email");
+      sendPasswordResetEmail(auth, email)
+        .then(() => alert("Lien de réinitialisation envoyé."))
+        .catch(err => alert(err.message));
+    }
+
+    window.searchUser = async function() {
+      const input = document.getElementById('searchInput').value.toLowerCase();
+      const resultsDiv = document.getElementById('searchResults');
+      resultsDiv.innerHTML = '';
+      const snap = await get(ref(db, 'users'));
+      snap.forEach(child => {
+        const u = child.val();
+        if (u.email.toLowerCase().includes(input) || u.pseudo.toLowerCase().includes(input)) {
+          const el = document.createElement('div');
+          el.className = 'user-card';
+          el.innerText = u.pseudo + ' (' + u.email + ')';
+          el.onclick = () => openChat(u);
+          resultsDiv.appendChild(el);
+        }
+      });
+    }
+
+    function openChat(user) {
+      currentChat = user;
+      chatWith.innerText = 'Discussion avec ' + user.pseudo;
+      chatSection.style.display = 'block';
+      messages.innerHTML = '';
+
+      const chatId = [currentUser.uid, user.uid].sort().join('_');
+      onChildAdded(ref(db, 'chats/' + chatId), (data) => {
+        const msg = data.val();
+        const div = document.createElement('div');
+        div.className = 'message ' + (msg.from === currentUser.uid ? 'you' : 'other');
+        div.innerText = msg.text;
+        messages.appendChild(div);
+        messages.scrollTop = messages.scrollHeight;
+      });
+    }
+
+    window.sendMessage = function() {
+      const text = document.getElementById('msgInput').value;
+      if (!text || !currentChat) return;
+      const chatId = [currentUser.uid, currentChat.uid].sort().join('_');
+      push(ref(db, 'chats/' + chatId), {
+        from: currentUser.uid,
+        to: currentChat.uid,
+        text: text,
+        timestamp: Date.now()
+      });
+      document.getElementById('msgInput').value = '';
+    }
+
+    window.showUserList = async function() {
+      userListSection.style.display = userListSection.style.display === 'block' ? 'none' : 'block';
+      const listDiv = document.getElementById('userList');
+      listDiv.innerHTML = '';
+      const snap = await get(ref(db, 'users'));
+      snap.forEach(child => {
+        const u = child.val();
+        if (u.uid !== currentUser.uid) {
+          const el = document.createElement('div');
+          el.className = 'user-card';
+          el.innerText = u.pseudo;
+          el.onclick = () => openChat(u);
+          listDiv.appendChild(el);
+        }
       });
     }
   </script>
-</head>
-<body>
-  <form id="loginForm">
-    <h2>Connexion</h2>
-    <input type="email" name="email" placeholder="Email" required><br>
-    <input type="password" name="password" placeholder="Mot de passe" required><br>
-    <button type="submit">Se connecter</button>
-    <button type="button" id="resetPass">Mot de passe oublié ?</button>
-  </form>
-
-  <form id="registerForm">
-    <h2>Inscription</h2>
-    <input type="email" name="email" placeholder="Email" required><br>
-    <input type="password" name="password" placeholder="Mot de passe" required><br>
-    <input type="text" name="pseudo" placeholder="Pseudo" required><br>
-    <input type="file" id="profilePic" accept="image/*"><br>
-    <button type="submit">Créer un compte</button>
-  </form>
-
-  <div id="chatInterface" style="display:none">
-    <div id="topBar">
-      <img src="rtm.jpg" style="width:30px;height:30px;float:right;cursor:pointer;" onclick="document.getElementById('allUsersList').style.display='block'">
-      <input type="text" id="receiverName" placeholder="Nom de l'ami... (cliquez sur la liste à droite)">
-    </div>
-    <div id="allUsersList" style="display:none; position:fixed; right:0; top:50px; background:white; border:1px solid gray;"></div>
-    <div id="messages"></div>
-    <div id="sendMsg">
-      <input type="text" id="msgTxt" placeholder="Votre message...">
-      <button onclick="sendMsg()">Envoyer</button>
-    </div>
-  </div>
 </body>
 </html>
