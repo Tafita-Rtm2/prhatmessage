@@ -1,0 +1,73 @@
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background: #f0f2f5;
+}
+
+.container {
+  text-align: center;
+  margin-top: 100px;
+}
+
+.container input, .container button {
+  padding: 10px;
+  margin: 10px;
+  width: 250px;
+  font-size: 16px;
+}
+
+.chat-header {
+  background: #4267B2;
+  color: white;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chat-header img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+}
+
+#messages {
+  padding: 10px;
+  height: calc(100vh - 160px);
+  overflow-y: auto;
+  background: #fff;
+}
+
+.message {
+  margin: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  max-width: 60%;
+}
+
+.message.me {
+  background: #DCF8C6;
+  align-self: flex-end;
+}
+
+.message.notMe {
+  background: #ECECEC;
+  align-self: flex-start;
+}
+
+.send-box {
+  display: flex;
+  padding: 10px;
+  background: #fff;
+}
+
+.send-box input[type="text"] {
+  flex: 1;
+  padding: 10px;
+  font-size: 16px;
+}
+
+.send-box button {
+  padding: 10px;
+  font-size: 16px;
+}
