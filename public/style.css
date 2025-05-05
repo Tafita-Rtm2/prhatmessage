@@ -1,18 +1,49 @@
 body {
-  font-family: Arial, sans-serif;
-  margin: 20px;
-  background: #f0f0f0;
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: #f3f3f3;
+  color: #333;
 }
 
-.hidden {
-  display: none;
+.chat-container {
+  max-width: 600px;
+  margin: auto;
+  padding: 20px;
+}
+
+header {
+  text-align: center;
+  background: #007bff;
+  color: white;
+  padding: 10px;
+  border-radius: 8px;
 }
 
 #messages {
-  height: 200px;
+  height: 300px;
   overflow-y: scroll;
-  background: white;
   border: 1px solid #ccc;
+  background: white;
   padding: 10px;
-  margin-bottom: 10px;
+  margin-top: 15px;
+}
+
+input {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+button {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  background: #28a745;
+  border: none;
+  color: white;
+  font-size: 16px;
+  border-radius: 4px;
 }
