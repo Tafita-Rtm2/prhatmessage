@@ -1,26 +1,170 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Connexion</title>
-  <link rel="stylesheet" href="styles.css" />
-  <script type="module" src="auth.js"></script>
+    <title>Private Chat App</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h2>Connexion</h2>
-  <form id="loginForm">
-    <input type="email" id="email" placeholder="Email" required />
-    <input type="password" id="password" placeholder="Mot de passe" required />
-    <button type="submit">Se connecter</button>
-  </form>
+    <div id="authContainer">
+        <div id="loginForm">
+            <h2>Login</h2>
+            <input type="email" id="loginEmail" placeholder="Email">
+            <button onclick="login()">Login</button>
+        </div>
 
-  <h2>Inscription</h2>
-  <form id="registerForm">
-    <input type="text" id="name" placeholder="Nom" required />
-    <input type="email" id="regEmail" placeholder="Email" required />
-    <input type="password" id="regPassword" placeholder="Mot de passe" required />
-    <input type="file" id="profilePic" accept="image/*" />
-    <button type="submit">S'inscrire</button>
-  </form>
+        <div id="registerForm">
+            <h2>Register</h2>
+            <input type="email" id="registerEmail" placeholder="Email">
+            <button onclick="register()">Register</button>
+        </div>
+    </div>
+
+    <div id="chatContainer" style="display: none;">
+        <div id="topBar">
+            <input type="text" id="searchEmail" placeholder="Search friend by email">
+            <button onclick="searchFriend()">Search</button>
+        </div>
+
+        <div id="friendsList"></div>
+
+        <div id="messages"></div>
+
+        <div id="sendMsg">
+            <input type="text" id="msgTxt" placeholder="Enter your message...">
+            <input type="submit" id="msgBtn" value="Send" onclick="module.sendMsg()">
+        </div>
+    </div>
+
+    <script>
+        module = {};
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+        import { getDatabase, ref, set, remove, onChildAdded, onChildRemoved, get, child } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJ81pHD2-xnKczsJyrWwIZao-rypkeDOo",
+            authDomain: "coder-8ddcf.firebaseapp.com",
+            projectId: "coder-8ddcf",
+            storageBucket: "coder-8ddcf.appspot.com",
+            messagingSenderId: "603139974872",
+            appId: "1:603139974872:web:98026f933d6f421116d9ad"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let senderEmail = sessionStorage.getItem("email");
+        let receiver = "";
+
+        if (senderEmail) showChat();
+
+        window.register = function () {
+            const email = document.getElementById("registerEmail").value.trim();
+            if (!email) return alert("Enter email");
+            set(ref(db, "users/" + encodeEmail(email)), { email });
+            sessionStorage.setItem("email", email);
+            senderEmail = email;
+            showChat();
+        };
+
+        window.login = function () {
+            const email = document.getElementById("loginEmail").value.trim();
+            if (!email) return alert("Enter email");
+            get(child(ref(db), "users/" + encodeEmail(email))).then(snapshot => {
+                if (snapshot.exists()) {
+                    sessionStorage.setItem("email", email);
+                    senderEmail = email;
+                    showChat();
+                } else {
+                    alert("User not found");
+                }
+            });
+        };
+
+        function showChat() {
+            document.getElementById("authContainer").style.display = "none";
+            document.getElementById("chatContainer").style.display = "block";
+        }
+
+        window.searchFriend = function () {
+            const searchEmail = document.getElementById("searchEmail").value.trim();
+            if (!searchEmail) return;
+            const encoded = encodeEmail(searchEmail);
+            get(child(ref(db), "users/" + encoded)).then(snapshot => {
+                const list = document.getElementById("friendsList");
+                list.innerHTML = "";
+                if (snapshot.exists()) {
+                    const btn = document.createElement("button");
+                    btn.textContent = "Chat with " + searchEmail;
+                    btn.onclick = () => {
+                        receiver = searchEmail;
+                        loadConversation();
+                    };
+                    list.appendChild(btn);
+                } else {
+                    list.textContent = "User not found.";
+                }
+            });
+        };
+
+        function encodeEmail(email) {
+            return email.replace(/\./g, "(dot)");
+        }
+
+        const msgTxt = document.getElementById('msgTxt');
+        const messages = document.getElementById('messages');
+
+        function getChatId(user1, user2) {
+            return [user1, user2].sort().join("-").replace(/\./g, "(dot)");
+        }
+
+        function loadConversation() {
+            messages.innerHTML = "";
+            const chatId = getChatId(senderEmail, receiver);
+            const chatRef = ref(db, "privateMessages/" + chatId);
+
+            onChildAdded(chatRef, (data) => {
+                const msg = data.val();
+                const who = msg.sender === senderEmail ? "you" : msg.sender;
+                const css = msg.sender === senderEmail ? "me" : "notMe";
+
+                messages.innerHTML += `<div class="outer" id="${data.key}">
+                    <div id="inner" class="${css}">${who} : ${msg.msg}
+                    ${msg.sender === senderEmail ? `<button onclick="module.dltMsg('${chatId}','${data.key}')">DELETE</button>` : ""}
+                    </div></div>`;
+                messages.scrollTop = messages.scrollHeight;
+            });
+
+            onChildRemoved(chatRef, (data) => {
+                const msgBox = document.getElementById(data.key);
+                if (msgBox) messages.removeChild(msgBox);
+            });
+        }
+
+        module.sendMsg = function () {
+            if (!receiver) {
+                alert("Please search and select a friend first.");
+                return;
+            }
+            const msg = msgTxt.value.trim();
+            if (msg === "") return;
+
+            const timestamp = new Date().getTime();
+            const chatId = getChatId(senderEmail, receiver);
+
+            set(ref(db, "privateMessages/" + chatId + "/" + timestamp), {
+                msg: msg,
+                sender: senderEmail
+            });
+
+            msgTxt.value = "";
+        };
+
+        module.dltMsg = function (chatId, key) {
+            remove(ref(db, "privateMessages/" + chatId + "/" + key));
+        };
+    </script>
 </body>
 </html>
