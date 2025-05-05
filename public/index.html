@@ -1,32 +1,29 @@
-<!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Connexion - TAFITAFACE</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Connexion - TafiMessenger</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="login-container">
-    <h1>TAFITA Messenger</h1>
-    <input type="text" id="name" placeholder="Nom complet">
-    <input type="email" id="email" placeholder="Adresse Email">
-    <input type="password" id="password" placeholder="Mot de passe">
-    <input type="file" id="photo" accept="image/*">
-    <button onclick="register()">Créer un compte</button>
+  <div class="auth-container">
+    <h2>TafiMessenger</h2>
+    <div id="auth-forms">
+      <input type="text" id="name" placeholder="Nom complet (inscription)" />
+      <input type="email" id="email" placeholder="Adresse e-mail" />
+      <input type="password" id="password" placeholder="Mot de passe" />
+      <input type="text" id="profilePic" placeholder="Lien image de profil (facultatif)" />
 
-    <hr>
-    <input type="email" id="loginEmail" placeholder="Email">
-    <input type="password" id="loginPassword" placeholder="Mot de passe">
-    <button onclick="login()">Se connecter</button>
+      <button onclick="signUp()">Créer un compte</button>
+      <button onclick="signIn()">Se connecter</button>
+    </div>
   </div>
 
-  <script src="firebaseConfig.js"></script>
-  <script src="script.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="auth.js"></script>
 </body>
 </html>
