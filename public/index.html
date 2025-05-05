@@ -1,28 +1,26 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Web</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
     <div id="app">
-        <!-- Page d'inscription / Connexion -->
+        <!-- Page de connexion / inscription -->
         <div id="loginPage">
             <h2>Connexion</h2>
-            <input type="email" id="email" placeholder="Email">
-            <input type="password" id="password" placeholder="Mot de passe">
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Mot de passe" required>
             <button id="loginBtn">Se connecter</button>
             <button id="signupBtn">S'inscrire</button>
         </div>
 
-        <!-- Page de recherche des utilisateurs -->
+        <!-- Page de recherche d'utilisateur -->
         <div id="searchPage" style="display: none;">
             <h2>Rechercher un utilisateur</h2>
-            <input type="email" id="searchEmail" placeholder="Entrez l'email">
+            <input type="email" id="searchEmail" placeholder="Entrez l'email" required>
             <button id="searchBtn">Rechercher</button>
             <div id="userResults"></div>
             <button id="logoutBtn">Déconnexion</button>
@@ -32,7 +30,7 @@
         <div id="chatPage" style="display: none;">
             <h2 id="chatWithUser">Chat avec</h2>
             <div id="messages"></div>
-            <input type="text" id="messageInput" placeholder="Écrire un message...">
+            <input type="text" id="messageInput" placeholder="Écrire un message..." required>
             <button id="sendMessageBtn">Envoyer</button>
             <button id="backToSearchBtn">Retour à la recherche</button>
         </div>
@@ -44,5 +42,4 @@
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js"></script>
     <script src="app.js"></script>
 </body>
-
 </html>
