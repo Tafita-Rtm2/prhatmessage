@@ -1,213 +1,237 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Private Chat App</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Private Chat App</title>
+  <link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
-    <div id="authContainer" class="auth-container">
-        <div id="registerForm" class="auth-box">
-            <h2>Create Account</h2>
-            <input type="text" id="registerUsername" placeholder="Username">
-            <input type="email" id="registerEmail" placeholder="Email">
-            <input type="password" id="registerPassword" placeholder="Password">
-            <input type="file" id="profilePic">
-            <button onclick="register()">Register</button>
-        </div>
-        <div id="loginForm" class="auth-box">
-            <h2>Login</h2>
-            <input type="email" id="loginEmail" placeholder="Email">
-            <input type="password" id="loginPassword" placeholder="Password">
-            <button onclick="login()">Login</button>
-            <button class="link-button" onclick="resetPassword()">Forgot Password?</button>
-        </div>
+  <div id="authContainer" class="auth-container">
+    <div class="auth-box">
+      <h2>Create Account</h2>
+      <input type="text" id="registerUsername" placeholder="Username" />
+      <input type="email" id="registerEmail" placeholder="Email" />
+      <input type="password" id="registerPassword" placeholder="Password" />
+      <input type="file" id="profilePic" />
+      <button onclick="register()">Register</button>
+    </div>
+    <div class="auth-box">
+      <h2>Login</h2>
+      <input type="email" id="loginEmail" placeholder="Email" />
+      <input type="password" id="loginPassword" placeholder="Password" />
+      <button onclick="login()">Login</button>
+      <button class="link-button" onclick="resetPassword()">Forgot Password?</button>
+    </div>
+  </div>
+
+  <div id="chatContainer" class="chat-container" style="display:none;">
+    <div class="top-bar">
+      <input type="text" id="searchInput" placeholder="Search users by email or username" />
+      <button onclick="searchFriend()">Search</button>
+      <button onclick="loadAllUsers()">All Users</button>
+      <div id="currentUser" class="user-info"></div>
     </div>
 
-    <div id="chatContainer" class="chat-container" style="display: none;">
-        <div id="topBar" class="top-bar">
-            <input type="text" id="searchInput" placeholder="Search users by email or username">
-            <button onclick="searchFriend()">Search</button>
-            <button onclick="loadAllUsers()">All Users</button>
-            <div id="currentUser" class="user-info"></div>
-        </div>
+    <div id="friendsList" class="friends-list"></div>
 
-        <div id="friendsList" class="friends-list"></div>
+    <div id="messages" class="messages"></div>
 
-        <div id="messages" class="messages"></div>
-
-        <div id="sendMsg" class="send-msg">
-            <input type="text" id="msgTxt" placeholder="Type your message...">
-            <input type="submit" id="msgBtn" value="Send" onclick="module.sendMsg()">
-        </div>
+    <div class="send-msg">
+      <input type="text" id="msgTxt" placeholder="Type your message..." />
+      <input type="submit" id="msgBtn" value="Send" onclick="module.sendMsg()" />
     </div>
+  </div>
 
-    <script>
-        module = {};
-    </script>
+  <script>
+    module = {};
+  </script>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
-        import { getDatabase, ref, set, get, child, onChildAdded, update } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
-        import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-storage.js";
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      sendPasswordResetEmail,
+      onAuthStateChanged,
+    } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
+    import {
+      getDatabase,
+      ref,
+      set,
+      get,
+      child,
+      onChildAdded,
+      update,
+    } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+    import {
+      getStorage,
+      ref as sRef,
+      uploadBytes,
+      getDownloadURL,
+    } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-storage.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCDbP-yKWXD4L1HowJt3ZSyEpMUMrzJZjI",
-            authDomain: "tafitafaceboot.firebaseapp.com",
-            databaseURL: "https://tafitafaceboot-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "tafitafaceboot",
-            storageBucket: "tafitafaceboot.appspot.com",
-            messagingSenderId: "893787639070",
-            appId: "1:893787639070:web:e5dd2798f3cb2b6fa24d0f",
-            measurementId: "G-H64J1YYPYE"
-        };
+    const firebaseConfig = {
+      apiKey: "AIzaSyCDbP-yKWXD4L1HowJt3ZSyEpMUMrzJZjI",
+      authDomain: "tafitafaceboot.firebaseapp.com",
+      databaseURL: "https://tafitafaceboot-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "tafitafaceboot",
+      storageBucket: "tafitafaceboot.appspot.com",
+      messagingSenderId: "893787639070",
+      appId: "1:893787639070:web:e5dd2798f3cb2b6fa24d0f",
+      measurementId: "G-H64J1YYPYE"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        const auth = getAuth(app);
-        const storage = getStorage(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+    const storage = getStorage(app);
 
-        let currentUserEmail = "";
-        let currentUsername = "";
-        let receiver = "";
+    let currentUserEmail = "";
+    let currentUsername = "";
+    let receiver = "";
 
-        onAuthStateChanged(auth, user => {
-            if (user) {
-                currentUserEmail = user.email;
-                get(child(ref(db), "users/" + encodeEmail(currentUserEmail))).then(snapshot => {
-                    if (snapshot.exists()) {
-                        currentUsername = snapshot.val().username || currentUserEmail;
-                        const profilePicUrl = snapshot.val().photoURL;
-                        let displayText = `Logged in as ${currentUsername}`;
-                        if (profilePicUrl) displayText = `<img src="${profilePicUrl}" id="profilePicPreview"> ${displayText}`;
-                        document.getElementById("currentUser").innerHTML = displayText;
-                        showChat();
-                    }
-                });
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        currentUserEmail = user.email;
+        get(child(ref(db), "users/" + encodeEmail(currentUserEmail))).then(snapshot => {
+          if (snapshot.exists()) {
+            currentUsername = snapshot.val().username || currentUserEmail;
+            const profilePicUrl = snapshot.val().photoURL;
+            let displayText = `Logged in as ${currentUsername}`;
+            if (profilePicUrl) {
+              displayText = `<img src="${profilePicUrl}" id="profilePicPreview" style="height:30px;border-radius:50%;"> ${displayText}`;
             }
+            document.getElementById("currentUser").innerHTML = displayText;
+            showChat();
+          }
         });
+      } else {
+        document.getElementById("chatContainer").style.display = "none";
+        document.getElementById("authContainer").style.display = "block";
+      }
+    });
 
-        window.register = async function () {
-            const email = document.getElementById("registerEmail").value.trim();
-            const password = document.getElementById("registerPassword").value.trim();
-            const username = document.getElementById("registerUsername").value.trim();
-            const profilePic = document.getElementById("profilePic").files[0];
+    function showChat() {
+      document.getElementById("authContainer").style.display = "none";
+      document.getElementById("chatContainer").style.display = "block";
+    }
 
-            if (!email || !password || !username) return alert("Fill all required fields");
+    function encodeEmail(email) {
+      return email.replace(/\./g, "(dot)");
+    }
 
-            try {
-                const cred = await createUserWithEmailAndPassword(auth, email, password);
-                let photoURL = "";
-                if (profilePic) {
-                    const picRef = sRef(storage, `profilePics/${encodeEmail(email)}`);
-                    await uploadBytes(picRef, profilePic);
-                    photoURL = await getDownloadURL(picRef);
-                }
-                await set(ref(db, "users/" + encodeEmail(email)), { email, username, photoURL });
-                alert("Account created successfully. Please login.");
-            } catch (e) {
-                alert(e.message);
-            }
-        };
+    window.register = async function () {
+      const email = document.getElementById("registerEmail").value.trim();
+      const password = document.getElementById("registerPassword").value.trim();
+      const username = document.getElementById("registerUsername").value.trim();
+      const profilePic = document.getElementById("profilePic").files[0];
 
-        window.login = async function () {
-            const email = document.getElementById("loginEmail").value.trim();
-            const password = document.getElementById("loginPassword").value.trim();
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-            } catch (e) {
-                alert(e.message);
-            }
-        };
+      if (!email || !password || !username) return alert("Please fill all required fields");
 
-        window.resetPassword = function () {
-            const email = prompt("Enter your email to reset password:");
-            if (email) sendPasswordResetEmail(auth, email).then(() => alert("Check your email."));
-        };
-
-        function showChat() {
-            document.getElementById("authContainer").style.display = "none";
-            document.getElementById("chatContainer").style.display = "block";
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        let photoURL = "";
+        if (profilePic) {
+          const picRef = sRef(storage, `profilePics/${encodeEmail(email)}`);
+          await uploadBytes(picRef, profilePic);
+          photoURL = await getDownloadURL(picRef);
         }
+        await set(ref(db, "users/" + encodeEmail(email)), { email, username, photoURL });
+        alert("Account created successfully. Please login.");
+      } catch (e) {
+        alert("Registration failed: " + e.message);
+      }
+    };
 
-        window.searchFriend = function () {
-            const input = document.getElementById("searchInput").value.trim().toLowerCase();
-            const list = document.getElementById("friendsList");
-            list.innerHTML = "";
-            get(child(ref(db), "users")).then(snapshot => {
-                snapshot.forEach(user => {
-                    const data = user.val();
-                    if ((data.email.toLowerCase().includes(input) || (data.username && data.username.toLowerCase().includes(input))) && data.email !== currentUserEmail) {
-                        const btn = document.createElement("button");
-                        btn.textContent = `Chat with ${data.username || data.email}`;
-                        btn.onclick = () => {
-                            receiver = data.email;
-                            loadConversation();
-                        };
-                        list.appendChild(btn);
-                    }
-                });
-            });
-        };
+    window.login = async function () {
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value.trim();
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (e) {
+        alert("Login failed: " + e.message);
+      }
+    };
 
-        window.loadAllUsers = function () {
-            const list = document.getElementById("friendsList");
-            list.innerHTML = "";
-            get(child(ref(db), "users")).then(snapshot => {
-                snapshot.forEach(user => {
-                    const data = user.val();
-                    if (data.email !== currentUserEmail) {
-                        const btn = document.createElement("button");
-                        btn.textContent = `${data.username || data.email}`;
-                        btn.onclick = () => {
-                            receiver = data.email;
-                            loadConversation();
-                        };
-                        list.appendChild(btn);
-                    }
-                });
-            });
-        };
+    window.resetPassword = function () {
+      const email = prompt("Enter your email to reset password:");
+      if (email) {
+        sendPasswordResetEmail(auth, email).then(() => alert("Check your email."));
+      }
+    };
 
-        function encodeEmail(email) {
-            return email.replace(/\./g, "(dot)");
-        }
+    window.searchFriend = function () {
+      const input = document.getElementById("searchInput").value.trim().toLowerCase();
+      const list = document.getElementById("friendsList");
+      list.innerHTML = "";
+      get(child(ref(db), "users")).then(snapshot => {
+        snapshot.forEach(user => {
+          const data = user.val();
+          if ((data.email.toLowerCase().includes(input) || (data.username && data.username.toLowerCase().includes(input))) && data.email !== currentUserEmail) {
+            const btn = document.createElement("button");
+            btn.textContent = `Chat with ${data.username || data.email}`;
+            btn.onclick = () => {
+              receiver = data.email;
+              loadConversation();
+            };
+            list.appendChild(btn);
+          }
+        });
+      });
+    };
 
-        const msgTxt = document.getElementById('msgTxt');
-        const messages = document.getElementById('messages');
+    window.loadAllUsers = function () {
+      const list = document.getElementById("friendsList");
+      list.innerHTML = "";
+      get(child(ref(db), "users")).then(snapshot => {
+        snapshot.forEach(user => {
+          const data = user.val();
+          if (data.email !== currentUserEmail) {
+            const btn = document.createElement("button");
+            btn.textContent = `${data.username || data.email}`;
+            btn.onclick = () => {
+              receiver = data.email;
+              loadConversation();
+            };
+            list.appendChild(btn);
+          }
+        });
+      });
+    };
 
-        function getChatId(user1, user2) {
-            return [user1, user2].sort().join("-").replace(/\./g, "(dot)");
-        }
+    function getChatId(user1, user2) {
+      return [user1, user2].sort().join("-").replace(/\./g, "(dot)");
+    }
 
-        function loadConversation() {
-            messages.innerHTML = "";
-            const chatId = getChatId(currentUserEmail, receiver);
-            const chatRef = ref(db, "privateMessages/" + chatId);
+    function loadConversation() {
+      const messages = document.getElementById("messages");
+      messages.innerHTML = "";
+      const chatId = getChatId(currentUserEmail, receiver);
+      const chatRef = ref(db, "privateMessages/" + chatId);
 
-            onChildAdded(chatRef, (data) => {
-                const msg = data.val();
-                const who = msg.sender === currentUserEmail ? "You" : msg.sender;
-                const css = msg.sender === currentUserEmail ? "me" : "notMe";
-                messages.innerHTML += `<div class="${css}">${who}: ${msg.msg}</div>`;
-                messages.scrollTop = messages.scrollHeight;
-            });
-        }
+      onChildAdded(chatRef, (data) => {
+        const msg = data.val();
+        const who = msg.sender === currentUserEmail ? "You" : msg.sender;
+        const css = msg.sender === currentUserEmail ? "me" : "notMe";
+        messages.innerHTML += `<div class="${css}">${who}: ${msg.msg}</div>`;
+        messages.scrollTop = messages.scrollHeight;
+      });
+    }
 
-        module.sendMsg = function () {
-            if (!receiver) return alert("Select a friend to chat with");
-            const msg = msgTxt.value.trim();
-            if (!msg) return;
-            const timestamp = new Date().getTime();
-            const chatId = getChatId(currentUserEmail, receiver);
-            set(ref(db, "privateMessages/" + chatId + "/" + timestamp), {
-                msg: msg,
-                sender: currentUserEmail
-            });
-            msgTxt.value = "";
-        };
-    </script>
+    module.sendMsg = function () {
+      if (!receiver) return alert("Select a friend to chat with");
+      const msg = document.getElementById("msgTxt").value.trim();
+      if (!msg) return;
+      const timestamp = new Date().getTime();
+      const chatId = getChatId(currentUserEmail, receiver);
+      set(ref(db, "privateMessages/" + chatId + "/" + timestamp), {
+        msg: msg,
+        sender: currentUserEmail
+      });
+      document.getElementById("msgTxt").value = "";
+    };
+  </script>
 </body>
 </html>
