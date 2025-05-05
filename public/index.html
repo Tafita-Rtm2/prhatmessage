@@ -1,34 +1,48 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Chat Web Firebase</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Web</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
-  <div id="auth-container">
-    <h2>Connexion / Inscription</h2>
-    <input type="text" id="username" placeholder="Nom d'utilisateur">
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Mot de passe">
-    <button id="signupBtn">Créer un compte</button>
-    <button id="loginBtn">Se connecter</button>
-  </div>
+    <div id="app">
+        <!-- Page d'inscription / Connexion -->
+        <div id="loginPage">
+            <h2>Connexion</h2>
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="password" placeholder="Mot de passe">
+            <button id="loginBtn">Se connecter</button>
+            <button id="signupBtn">S'inscrire</button>
+        </div>
 
-  <div id="chat-container" style="display:none;">
-    <h3 id="current-user"></h3>
-    <input type="text" id="searchEmail" placeholder="Email de l'ami à rechercher">
-    <button id="searchBtn">Rechercher</button>
-    <div id="foundUser"></div>
-    <div id="messages"></div>
-    <input type="text" id="messageInput" placeholder="Votre message...">
-    <button id="sendBtn">Envoyer</button>
-  </div>
+        <!-- Page de recherche des utilisateurs -->
+        <div id="searchPage" style="display: none;">
+            <h2>Rechercher un utilisateur</h2>
+            <input type="email" id="searchEmail" placeholder="Entrez l'email">
+            <button id="searchBtn">Rechercher</button>
+            <div id="userResults"></div>
+            <button id="logoutBtn">Déconnexion</button>
+        </div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-  <script src="script.js"></script>
+        <!-- Page de chat -->
+        <div id="chatPage" style="display: none;">
+            <h2 id="chatWithUser">Chat avec</h2>
+            <div id="messages"></div>
+            <input type="text" id="messageInput" placeholder="Écrire un message...">
+            <button id="sendMessageBtn">Envoyer</button>
+            <button id="backToSearchBtn">Retour à la recherche</button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js"></script>
+    <script src="app.js"></script>
 </body>
+
 </html>
