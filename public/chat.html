@@ -1,27 +1,42 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Chat privé</title>
+  <title>Chat – ChatApp</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="chat-header">
-    <img id="pdp" src="" alt="PDP">
-    <h2 id="username">Nom</h2>
-    <input type="file" id="fileInput" hidden onchange="uploadPDP(event)">
-    <button onclick="document.getElementById('fileInput').click()">Changer photo</button>
-    <button onclick="logout()">Déconnexion</button>
+
+  <div class="wrapper">
+
+    <!-- Liste des amis / recherche -->
+    <div class="sidebar">
+      <div class="profile">
+        <img id="myAvatar" src="" alt="PDP">
+        <span id="myName"></span>
+        <button id="logoutBtn">Déconnexion</button>
+      </div>
+      <input type="text" id="searchUser" placeholder="Rechercher un ami...">
+      <ul id="usersList"></ul>
+    </div>
+
+    <!-- Zone de chat -->
+    <div class="chat-area">
+      <div id="chatHeader" class="chat-header">
+        <span id="chatWith">Sélectionne un ami</span>
+      </div>
+      <div id="messages" class="messages"></div>
+      <div class="chat-input">
+        <input type="file" id="fileInput" accept="image/*,application/pdf">
+        <input type="text" id="msgInput" placeholder="Écrire un message...">
+        <button id="sendBtn">Envoyer</button>
+      </div>
+    </div>
+
   </div>
 
-  <div id="messages"></div>
-
-  <div class="send-box">
-    <input type="text" id="msgTxt" placeholder="Écrire un message...">
-    <input type="file" id="imgInput" onchange="sendImage(event)">
-    <button onclick="sendMsg()">Envoyer</button>
-  </div>
-
-  <script type="module" src="script.js"></script>
+  <!-- Firebase & scripts -->
+  <script type="module" src="firebase-config.js"></script>
+  <script type="module" src="chat.js"></script>
 </body>
 </html>
