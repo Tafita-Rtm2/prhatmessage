@@ -1,51 +1,35 @@
+<!-- public/chat.html -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Chat – ChatApp</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles.css">
+  <title>Messagerie</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="chat.css">
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 </head>
 <body>
+  <div class="chat-app">
+    <div class="sidebar">
+      <input type="text" id="searchInput" placeholder="Rechercher un utilisateur par email...">
+      <button onclick="searchUser()">🔍</button>
+      <div id="usersList"></div>
+    </div>
 
-  <div class="container">
-
-    <!-- Sidebar liste d'amis -->
-    <aside class="sidebar" id="sidebar">
-      <header class="sidebar-header">
-        <img id="myAvatar" src="default-avatar.png" alt="PDP">
-        <span id="myName">Mon Nom</span>
-        <button id="logoutBtn">⎋</button>
-      </header>
-
-      <!-- Zone de recherche améliorée -->
-      <div class="search-box">
-        <input type="text" id="searchUser" placeholder="🔍 Rechercher un ami...">
-        <button id="searchBtn" class="search-btn">🔎</button>
+    <div class="chat-section">
+      <div id="chatHeader"></div>
+      <div id="chatMessages" class="messages"></div>
+      <div class="input-area">
+        <input type="text" id="messageInput" placeholder="Écris ton message...">
+        <button onclick="sendMessage()">Envoyer</button>
       </div>
-
-      <ul id="usersList" class="users-list"></ul>
-    </aside>
-
-    <!-- Zone de chat -->
-    <section class="chat-area hidden" id="chatArea">
-      <header class="chat-header">
-        <button class="back-btn" id="backBtn">←</button>
-        <img id="chatAvatar" src="" alt="PDP ami">
-        <span id="chatWith">Sélectionne un ami</span>
-      </header>
-      <div id="messages" class="messages"></div>
-      <footer class="chat-footer">
-        <input type="file" id="fileInput" accept="image/*,application/pdf" title="Envoyer un fichier">
-        <input type="text" id="msgInput" placeholder="Écrire un message...">
-        <button id="sendBtn">➤</button>
-      </footer>
-    </section>
-
+    </div>
   </div>
 
-  <script type="module" src="firebase-config.js"></script>
-  <script type="module" src="auth.js"></script>
-  <script type="module" src="chat.js"></script>
+  <script src="firebaseConfig.js"></script>
+  <script src="chat.js"></script>
 </body>
 </html>
