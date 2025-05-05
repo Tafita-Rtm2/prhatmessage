@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Inscription – ChatApp</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="auth-container">
+    <h1>Créer un compte</h1>
+    <input type="text" id="displayName" placeholder="Nom complet">
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Mot de passe">
+    <input type="file" id="avatarInput" accept="image/*">
+    <button id="signupBtn">S'inscrire</button>
+    <p>Déjà un compte ? <a href="index.html">Connexion</a></p>
+    <p id="error" class="error"></p>
+  </div>
+
+  <script type="module" src="auth.js"></script>
+</body>
+</html>
