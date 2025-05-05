@@ -8,7 +8,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getDatabase, ref, onValue, push, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+    import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCDbP-yKWXD4L1HowJt3ZSyEpMUMrzJZjI",
@@ -76,32 +76,40 @@
         const target = targetInput.value.trim();
         const message = messageInput.value.trim();
         if (target && message) {
-          fetch('/send', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ from: window.currentUid, to: target, text: message })
-          }).then(() => {
-            messageInput.value = '';
-            refreshMessages();
-          });
+          sendMessage(target, message);
         }
       };
-
     });
+
+    function sendMessage(target, message) {
+      const messageRef = ref(db, 'messages/' + window.currentUid + '/' + target);
+      const newMessageRef = push(messageRef);
+      set(newMessageRef, {
+        from: window.currentUid,
+        text: message,
+        timestamp: Date.now(),
+      }).then(() => {
+        refreshMessages();
+      });
+    }
 
     // Actualiser les messages
     function refreshMessages() {
-      fetch(`/messages/${window.currentUid}`)
-        .then(res => res.json())
-        .then(data => {
-          const box = document.getElementById('messages');
-          box.innerHTML = '';
-          data.forEach(msg => {
+      const messagesRef = ref(db, 'messages/' + window.currentUid);
+      onValue(messagesRef, (snapshot) => {
+        const messagesData = snapshot.val();
+        const messagesDiv = document.getElementById('messages');
+        messagesDiv.innerHTML = '';
+
+        for (let targetId in messagesData) {
+          for (let messageId in messagesData[targetId]) {
+            const msg = messagesData[targetId][messageId];
             const p = document.createElement('p');
             p.textContent = `${msg.from === window.currentUid ? 'Moi' : msg.from}: ${msg.text}`;
-            box.appendChild(p);
-          });
-        });
+            messagesDiv.appendChild(p);
+          }
+        }
+      });
     }
   </script>
 </head>
