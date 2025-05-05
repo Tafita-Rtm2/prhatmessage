@@ -19,29 +19,46 @@ import {
   getDownloadURL
 } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 
-const sidebar    = document.getElementById('sidebar');
-const chatArea   = document.getElementById('chatArea');
-const backBtn    = document.getElementById('backBtn');
-const usersList  = document.getElementById('usersList');
-const searchInput= document.getElementById('searchUser');
-const myAvatar   = document.getElementById('myAvatar');
-const myName     = document.getElementById('myName');
-const logoutBtn  = document.getElementById('logoutBtn');
-const chatAvatar = document.getElementById('chatAvatar');
-const chatWithEl = document.getElementById('chatWith');
-const messagesEl = document.getElementById('messages');
-const msgInput   = document.getElementById('msgInput');
-const sendBtn    = document.getElementById('sendBtn');
-const fileInput  = document.getElementById('fileInput');
+// DOM
+const sidebar     = document.getElementById('sidebar');
+const chatArea    = document.getElementById('chatArea');
+const backBtn     = document.getElementById('backBtn');
+const usersList   = document.getElementById('usersList');
+const searchInput = document.getElementById('searchUser');
+const searchBtn   = document.getElementById('searchBtn');
+const myAvatar    = document.getElementById('myAvatar');
+const myName      = document.getElementById('myName');
+const logoutBtn   = document.getElementById('logoutBtn');
+const chatAvatar  = document.getElementById('chatAvatar');
+const chatWithEl  = document.getElementById('chatWith');
+const messagesEl  = document.getElementById('messages');
+const msgInput    = document.getElementById('msgInput');
+const sendBtn     = document.getElementById('sendBtn');
+const fileInput   = document.getElementById('fileInput');
 
 let currentUser, currentChatId, unsubscribeChat;
 
+// Déconnexion
 logoutBtn.onclick = () => {
   signOut(auth);
   sessionStorage.clear();
-  location.href='index.html';
+  location.href = 'index.html';
 };
 
+// Déclenche recherche au clic
+searchBtn.onclick = () => {
+  const term = searchInput.value.trim();
+  loadUsers(term);
+};
+
+// Recherche aussi au « Enter »
+searchInput.onkeypress = e => {
+  if (e.key === 'Enter') {
+    loadUsers(searchInput.value.trim());
+  }
+};
+
+// État Auth
 onAuthStateChanged(auth, async user => {
   if (!user) {
     location.href = 'index.html';
@@ -49,16 +66,16 @@ onAuthStateChanged(auth, async user => {
   }
   currentUser = user;
   myName.innerText = user.displayName;
-  myAvatar.src   = user.photoURL || 'default-avatar.png';
-  loadUsers();
-  searchInput.oninput = () => loadUsers(searchInput.value);
+  myAvatar.src    = user.photoURL || 'default-avatar.png';
+  await loadUsers('');  // charge tout au démarrage
 });
 
-async function loadUsers(filter='') {
+// Charge et affiche les utilisateurs
+async function loadUsers(filter = '') {
   usersList.innerHTML = '';
-  const usersCol = collection(db,'users');
+  const usersCol = collection(db, 'users');
   const q = filter
-    ? query(usersCol, where('name','>=',filter), where('name','<=',filter+'\uf8ff'))
+    ? query(usersCol, where('name','>=', filter), where('name','<=', filter + '\uf8ff'))
     : usersCol;
   const snap = await getDocs(q);
   snap.forEach(docSnap => {
@@ -71,20 +88,22 @@ async function loadUsers(filter='') {
   });
 }
 
+// Ouvre un chat privé
 function selectUser(user) {
   chatWithEl.innerText = user.name;
-  chatAvatar.src       = user.photoURL || 'default-avatar.png';
+  chatAvatar.src      = user.photoURL || 'default-avatar.png';
   const ids = [currentUser.uid, user.uid].sort().join('_');
   currentChatId = ids;
 
+  // Mobile : bascule vues
   if (window.innerWidth < 768) {
     sidebar.classList.add('hidden');
     chatArea.classList.remove('hidden');
   }
-  if (unsubscribeChat) unsubscribeChat();
 
-  const messagesCol = collection(db,'chats',currentChatId,'messages');
-  const q = query(messagesCol, orderBy('timestamp'));
+  if (unsubscribeChat) unsubscribeChat();
+  const col = collection(db, 'chats', currentChatId, 'messages');
+  const q = query(col, orderBy('timestamp'));
   unsubscribeChat = onSnapshot(q, snap => {
     messagesEl.innerHTML = '';
     snap.forEach(docSnap => {
@@ -105,19 +124,22 @@ function selectUser(user) {
   });
 }
 
+// Bouton retour mobile
 backBtn.onclick = () => {
   chatArea.classList.add('hidden');
   sidebar.classList.remove('hidden');
 };
 
+// Envoi message ou image
 sendBtn.onclick = async () => {
   if (!currentChatId) return;
 
+  // Fichier/image
   if (fileInput.files.length) {
     const file = fileInput.files[0];
-    const refStorage = sRef(storage, `chats/${currentChatId}/${Date.now()}_${file.name}`);
-    await uploadBytes(refStorage, file);
-    const url = await getDownloadURL(refStorage);
+    const sref = sRef(storage, `chats/${currentChatId}/${Date.now()}_${file.name}`);
+    await uploadBytes(sref, file);
+    const url = await getDownloadURL(sref);
     await addDoc(collection(db,'chats',currentChatId,'messages'), {
       sender: currentUser.uid,
       type: 'image',
@@ -127,6 +149,7 @@ sendBtn.onclick = async () => {
     fileInput.value = '';
   }
 
+  // Texte
   const text = msgInput.value.trim();
   if (text) {
     await addDoc(collection(db,'chats',currentChatId,'messages'), {
