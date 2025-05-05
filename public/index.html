@@ -1,26 +1,32 @@
+<!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Connexion – ChatApp</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles.css">
+  <title>Connexion - TAFITAFACE</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="auth-container">
-    <h1>ChatApp</h1>
-    <input type="email" id="email" placeholder="Email">
+  <div class="login-container">
+    <h1>TAFITA Messenger</h1>
+    <input type="text" id="name" placeholder="Nom complet">
+    <input type="email" id="email" placeholder="Adresse Email">
     <input type="password" id="password" placeholder="Mot de passe">
-    <button id="loginBtn">Se connecter</button>
-    <button id="signupRedirectBtn">Créer un compte</button>
-    <p id="error" class="error"></p>
+    <input type="file" id="photo" accept="image/*">
+    <button onclick="register()">Créer un compte</button>
+
+    <hr>
+    <input type="email" id="loginEmail" placeholder="Email">
+    <input type="password" id="loginPassword" placeholder="Mot de passe">
+    <button onclick="login()">Se connecter</button>
   </div>
 
-  <script>
-    document.getElementById('signupRedirectBtn').onclick = () => {
-      location.href = 'register.html';
-    };
-  </script>
-  <script type="module" src="auth.js"></script>
+  <script src="firebaseConfig.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
