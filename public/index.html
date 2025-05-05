@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tafita Chat App</title>
+  <title>Chat App</title>
   <link rel="stylesheet" href="style.css">
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -31,7 +31,9 @@
       const targetInput = document.getElementById('target');
       const messageInput = document.getElementById('message');
       const sendBtn = document.getElementById('send');
+      const chatBox = document.getElementById('chatBox');
 
+      // Authentification avec Google
       loginBtn.onclick = () => {
         signInWithPopup(auth, provider)
           .then(result => {
@@ -40,6 +42,7 @@
             document.getElementById('myId').textContent = user.displayName || 'Utilisateur';
             loginBtn.style.display = 'none';
             logoutBtn.style.display = 'block';
+            chatBox.style.display = 'block';
             refreshMessages();
           })
           .catch(error => alert(error.message));
@@ -49,6 +52,7 @@
         signOut(auth).then(() => {
           loginBtn.style.display = 'block';
           logoutBtn.style.display = 'none';
+          chatBox.style.display = 'none';
         });
       };
 
@@ -67,6 +71,7 @@
         }
       });
 
+      // Envoi de message
       sendBtn.onclick = () => {
         const target = targetInput.value.trim();
         const message = messageInput.value.trim();
@@ -81,8 +86,10 @@
           });
         }
       };
+
     });
 
+    // Actualiser les messages
     function refreshMessages() {
       fetch(`/messages/${window.currentUid}`)
         .then(res => res.json())
@@ -105,7 +112,7 @@
       <p>Ton ID : <span id="myId"></span></p>
     </header>
     <section id="chatBox" style="display: none;">
-      <div id="messages"></div>
+      <div id="messages" class="message-box"></div>
       <input type="text" id="target" placeholder="ID de l'ami" />
       <input type="text" id="message" placeholder="Ton message..." />
       <button id="send">Envoyer</button>
