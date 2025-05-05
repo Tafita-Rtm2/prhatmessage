@@ -1,3 +1,38 @@
+// public/styles.css
+* { box-sizing: border-box; margin:0; padding:0; }
+body { font-family: sans-serif; background: #f0f2f5; height:100vh; }
+.wrapper { display: flex; height: 100%; }
+.sidebar { width: 100%; max-width: 280px; background: #fff; border-right:1px solid #ddd; display:flex; flex-direction:column; }
+.profile { display:flex; align-items:center; padding:15px; border-bottom:1px solid #ddd; }
+.profile img { width:40px; height:40px; border-radius:50%; margin-right:10px; }
+.profile span { flex:1; }
+.profile button { padding:6px 10px; border:none; background:#dc3545; color:#fff; border-radius:4px; cursor:pointer; }
+#searchUser { margin:10px; padding:8px; border:1px solid #ccc; border-radius:4px; }
+#usersList { list-style:none; overflow-y:auto; flex:1; }
+#usersList li { display:flex; align-items:center; padding:10px; cursor:pointer; }
+#usersList li:hover { background:#f1f1f1; }
+#usersList img { width:30px; height:30px; border-radius:50%; margin-right:10px; }
+
+.chat-area { flex:1; display:flex; flex-direction:column; }
+.hidden { display:none; }
+.chat-header { padding:15px; background:#4267B2; color:#fff; display:flex; align-items:center; }
+.back-btn { background:transparent; border:none; color:#fff; font-size:1.2em; margin-right:10px; cursor:pointer; }
+#messages { flex:1; padding:15px; overflow-y:auto; background:#e5ddd5; display:flex; flex-direction:column; }
+.message { max-width:60%; margin:5px 0; padding:10px; border-radius:8px; word-wrap:break-word; }
+.message.me { align-self:flex-end; background:#dcf8c6; }
+.message.other { align-self:flex-start; background:#fff; }
+.chat-input { display:flex; padding:10px; background:#fff; border-top:1px solid #ddd; }
+.chat-input input[type="text"] { flex:1; padding:10px; border:1px solid #ccc; border-radius:4px; }
+.chat-input input[type="file"] { margin-right:10px; }
+.chat-input button { padding:10px 20px; margin-left:10px; border:none; background:#007bff; color:#fff; border-radius:4px; cursor:pointer; }
+
+/* Responsive mobile-first */
+@media(min-width:768px) {
+  .sidebar { display:flex !important; }
+  .chat-area { display:flex !important; }
+  .back-btn { display:none; }
+}
+
 /* Global */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: sans-serif; background: #f0f2f5; height: 100vh; }
