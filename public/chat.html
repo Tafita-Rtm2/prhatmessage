@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Chat privé</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="chat-header">
+    <img id="pdp" src="" alt="PDP">
+    <h2 id="username">Nom</h2>
+    <input type="file" id="fileInput" hidden onchange="uploadPDP(event)">
+    <button onclick="document.getElementById('fileInput').click()">Changer photo</button>
+    <button onclick="logout()">Déconnexion</button>
+  </div>
+
+  <div id="messages"></div>
+
+  <div class="send-box">
+    <input type="text" id="msgTxt" placeholder="Écrire un message...">
+    <input type="file" id="imgInput" onchange="sendImage(event)">
+    <button onclick="sendMsg()">Envoyer</button>
+  </div>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>
