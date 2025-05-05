@@ -1,188 +1,141 @@
+/* styles.css */
+
 body {
     margin: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f5f7fa;
-    color: #333;
+    background: #0f0f0f;
+    color: #e0e0e0;
+}
+
+h2 {
+    color: #00fff7;
+    text-shadow: 0 0 5px #00fff7, 0 0 10px #00fff7;
+    text-align: center;
+}
+
+#authContainer, #chatContainer {
+    max-width: 400px;
+    margin: auto;
+    padding: 30px;
+    background: rgba(20, 20, 20, 0.9);
+    border-radius: 20px;
+    box-shadow: 0 0 20px #00fff7;
+    margin-top: 50px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="submit"],
+button {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 10px;
+    background: #1e1e1e;
+    color: #00fff7;
+    font-size: 16px;
+    transition: all 0.3s ease-in-out;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
+    outline: none;
+    box-shadow: 0 0 10px #00fff7;
+}
+
+input[type="submit"]:hover,
+button:hover {
+    background: #00fff7;
+    color: #0f0f0f;
+    cursor: pointer;
+    box-shadow: 0 0 10px #00fff7, 0 0 20px #00fff7;
 }
 
 #topBar {
-    background-color: #0066cc;
-    padding: 12px 20px;
     display: flex;
-    justify-content: space-between;
+    gap: 10px;
     align-items: center;
-    color: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding-bottom: 15px;
+    flex-wrap: wrap;
 }
 
 #topBar input[type="text"] {
-    padding: 8px 12px;
-    width: 300px;
-    border: none;
-    border-radius: 4px;
-    outline: none;
+    flex: 1;
 }
 
-#topBar img {
-    width: 32px;
-    height: 32px;
+#currentUser {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #aaa;
+}
+
+#profilePicPreview {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
     border-radius: 50%;
-    cursor: pointer;
+    border: 2px solid #00fff7;
+}
+
+#friendsList button {
+    background: #161616;
+    border: 1px solid #00fff7;
+    margin: 5px 0;
 }
 
 #messages {
-    padding: 20px;
-    height: calc(100vh - 160px);
+    max-height: 300px;
     overflow-y: auto;
-    background-color: #eef2f7;
-}
-
-.outer {
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: flex-start;
-}
-
-#inner {
-    padding: 10px 15px;
-    border-radius: 20px;
-    max-width: 60%;
-    word-wrap: break-word;
-    position: relative;
-    font-size: 14px;
+    background: #1a1a1a;
+    padding: 10px;
+    border-radius: 10px;
+    margin: 20px 0;
+    border: 1px solid #00fff7;
 }
 
 .me {
-    background-color: #daf1da;
-    align-self: flex-end;
-    margin-left: auto;
+    text-align: right;
+    color: #00f7ff;
+    padding: 5px;
 }
 
 .notMe {
-    background-color: #ffffff;
+    text-align: left;
+    color: #fff;
+    padding: 5px;
 }
 
 #sendMsg {
-    padding: 10px 20px;
     display: flex;
     gap: 10px;
-    background-color: #ffffff;
-    border-top: 1px solid #ddd;
 }
 
 #sendMsg input[type="text"] {
     flex: 1;
-    padding: 10px;
-    border-radius: 25px;
-    border: 1px solid #ccc;
-    outline: none;
 }
 
-#sendMsg input[type="submit"] {
-    background-color: #0066cc;
-    border: none;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 25px;
-    cursor: pointer;
-    transition: background 0.3s ease;
+::-webkit-scrollbar {
+    width: 8px;
 }
 
-#sendMsg input[type="submit"]:hover {
-    background-color: #004a99;
+::-webkit-scrollbar-track {
+    background: #111;
 }
 
-button {
-    margin-top: 5px;
-    background-color: transparent;
-    color: #ff4d4d;
-    border: none;
-    cursor: pointer;
-    font-size: 12px;
+::-webkit-scrollbar-thumb {
+    background: #00fff7;
+    border-radius: 10px;
 }
 
-button:hover {
-    text-decoration: underline;
-}
-
-#userList {
-    position: absolute;
-    top: 60px;
-    right: 10px;
-    width: 250px;
-    background-color: white;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 10px;
-    max-height: 400px;
-    overflow-y: auto;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    display: none;
-}
-
-.user-entry {
-    display: flex;
-    align-items: center;
-    padding: 5px 10px;
-    border-bottom: 1px solid #eee;
-    cursor: pointer;
-}
-
-.user-entry:hover {
-    background-color: #f0f0f0;
-}
-
-.user-entry img {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    margin-right: 10px;
-}
-
-.login-container, .register-container {
-    display: flex;
-    flex-direction: column;
-    max-width: 400px;
-    margin: 80px auto;
-    padding: 30px;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-
-.login-container h2,
-.register-container h2 {
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-.login-container input,
-.register-container input {
-    padding: 10px;
-    margin-bottom: 15px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    outline: none;
-}
-
-.login-container button,
-.register-container button {
-    padding: 10px;
-    background-color: #0066cc;
-    border: none;
-    color: white;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.login-container button:hover,
-.register-container button:hover {
-    background-color: #004a99;
-}
-
-#reset-password {
-    font-size: 13px;
-    color: #0066cc;
-    text-align: right;
-    cursor: pointer;
+@media screen and (max-width: 500px) {
+    #authContainer, #chatContainer {
+        width: 90%;
+        padding: 20px;
+    }
 }
