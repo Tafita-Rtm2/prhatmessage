@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Messagerie</title>
+  <script type="module" src="home.js"></script>
+</head>
+<body>
+  <h2>Bienvenue, <span id="userName"></span></h2>
+  <input type="text" id="search" placeholder="Rechercher un utilisateur..." />
+  <ul id="usersList"></ul>
+  <div id="chatSection" style="display:none;">
+    <h3>Discussion avec <span id="chatWith"></span></h3>
+    <div id="messages"></div>
+    <input type="text" id="messageInput" placeholder="Votre message..." />
+    <button id="sendBtn">Envoyer</button>
+  </div>
+</body>
+</html>
