@@ -1,132 +1,20 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chat App</title>
-  <link rel="stylesheet" href="style.css">
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCDbP-yKWXD4L1HowJt3ZSyEpMUMrzJZjI",
-      authDomain: "tafitafaceboot.firebaseapp.com",
-      projectId: "tafitafaceboot",
-      storageBucket: "tafitafaceboot.firebasestorage.app",
-      messagingSenderId: "893787639070",
-      appId: "1:893787639070:web:e5dd2798f3cb2b6fa24d0f"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
-    const db = getDatabase(app);
-
-    document.addEventListener('DOMContentLoaded', () => {
-      const loginBtn = document.getElementById('login');
-      const logoutBtn = document.getElementById('logout');
-      const messagesDiv = document.getElementById('messages');
-      const targetInput = document.getElementById('target');
-      const messageInput = document.getElementById('message');
-      const sendBtn = document.getElementById('send');
-      const chatBox = document.getElementById('chatBox');
-
-      // Authentification avec Google
-      loginBtn.onclick = () => {
-        signInWithPopup(auth, provider)
-          .then(result => {
-            const user = result.user;
-            window.currentUid = user.uid;
-            document.getElementById('myId').textContent = user.displayName || 'Utilisateur';
-            loginBtn.style.display = 'none';
-            logoutBtn.style.display = 'block';
-            chatBox.style.display = 'block';
-            refreshMessages();
-          })
-          .catch(error => alert(error.message));
-      };
-
-      logoutBtn.onclick = () => {
-        signOut(auth).then(() => {
-          loginBtn.style.display = 'block';
-          logoutBtn.style.display = 'none';
-          chatBox.style.display = 'none';
-        });
-      };
-
-      onAuthStateChanged(auth, user => {
-        if (user) {
-          window.currentUid = user.uid;
-          document.getElementById('myId').textContent = user.displayName || 'Utilisateur';
-          document.getElementById('chatBox').style.display = 'block';
-          loginBtn.style.display = 'none';
-          logoutBtn.style.display = 'block';
-          refreshMessages();
-        } else {
-          document.getElementById('chatBox').style.display = 'none';
-          loginBtn.style.display = 'block';
-          logoutBtn.style.display = 'none';
-        }
-      });
-
-      // Envoi de message
-      sendBtn.onclick = () => {
-        const target = targetInput.value.trim();
-        const message = messageInput.value.trim();
-        if (target && message) {
-          sendMessage(target, message);
-        }
-      };
-    });
-
-    function sendMessage(target, message) {
-      const messageRef = ref(db, 'messages/' + window.currentUid + '/' + target);
-      const newMessageRef = push(messageRef);
-      set(newMessageRef, {
-        from: window.currentUid,
-        text: message,
-        timestamp: Date.now(),
-      }).then(() => {
-        refreshMessages();
-      });
-    }
-
-    // Actualiser les messages
-    function refreshMessages() {
-      const messagesRef = ref(db, 'messages/' + window.currentUid);
-      onValue(messagesRef, (snapshot) => {
-        const messagesData = snapshot.val();
-        const messagesDiv = document.getElementById('messages');
-        messagesDiv.innerHTML = '';
-
-        for (let targetId in messagesData) {
-          for (let messageId in messagesData[targetId]) {
-            const msg = messagesData[targetId][messageId];
-            const p = document.createElement('p');
-            p.textContent = `${msg.from === window.currentUid ? 'Moi' : msg.from}: ${msg.text}`;
-            messagesDiv.appendChild(p);
-          }
-        }
-      });
-    }
-  </script>
+  <title>Login - TafitaFaceboot</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="chat-container">
-    <header>
-      <h1>Chat Instantané</h1>
-      <p>Ton ID : <span id="myId"></span></p>
-    </header>
-    <section id="chatBox" style="display: none;">
-      <div id="messages" class="message-box"></div>
-      <input type="text" id="target" placeholder="ID de l'ami" />
-      <input type="text" id="message" placeholder="Ton message..." />
-      <button id="send">Envoyer</button>
-      <button id="logout" style="display: none;">Déconnexion</button>
-    </section>
-    <button id="login" style="display: block;">Se connecter avec Google</button>
+  <div class="container">
+    <h1>TafitaFaceboot</h1>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Mot de passe">
+    <button onclick="login()">Se connecter</button>
+    <button onclick="signup()">Créer un compte</button>
+    <p id="error"></p>
   </div>
+
+  <script type="module" src="script.js"></script>
 </body>
 </html>
