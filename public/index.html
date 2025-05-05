@@ -1,251 +1,209 @@
 <!DOCTYPE html>
-<html lang="fr">
-
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>RTM Messagerie</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Orbitron', sans-serif;
-      background: linear-gradient(to bottom right, #0f0c29, #302b63, #24243e);
-      color: #fff;
-    }
-
-    header {
-      background: rgba(0, 0, 0, 0.6);
-      padding: 10px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    header h1 {
-      font-size: 24px;
-    }
-
-    .user-list-icon {
-      cursor: pointer;
-    }
-
-    .container {
-      padding: 20px;
-      max-width: 600px;
-      margin: auto;
-    }
-
-    #authSection, #chatSection, #userListSection, #searchSection {
-      display: none;
-      background: rgba(255, 255, 255, 0.05);
-      padding: 20px;
-      border-radius: 10px;
-    }
-
-    input, button {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border: none;
-      border-radius: 5px;
-    }
-
-    input[type="submit"], button {
-      background: #00c6ff;
-      color: white;
-      cursor: pointer;
-    }
-
-    .message {
-      margin: 10px 0;
-    }
-
-    .message.you {
-      text-align: right;
-      color: #0f0;
-    }
-
-    .message.other {
-      text-align: left;
-      color: #0ff;
-    }
-
-    .user-card {
-      background: rgba(255, 255, 255, 0.1);
-      margin: 5px 0;
-      padding: 10px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Private Chat App</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
-  <header>
-    <h1>RTM Futur Messenger</h1>
-    <div class="user-list-icon" onclick="showUserList()">👥</div>
-  </header>
-
-  <div class="container">
-    <div id="authSection">
-      <h2>Connexion / Inscription</h2>
-      <input type="email" id="email" placeholder="Adresse e-mail">
-      <input type="password" id="password" placeholder="Mot de passe">
-      <input type="text" id="pseudo" placeholder="Pseudo (si nouveau compte)">
-      <input type="submit" value="Connexion / Inscription" onclick="auth()">
-      <button onclick="resetPassword()">Mot de passe oublié</button>
+    <div id="authContainer" class="auth-container">
+        <div id="registerForm" class="auth-box">
+            <h2>Create Account</h2>
+            <input type="text" id="registerUsername" placeholder="Username">
+            <input type="email" id="registerEmail" placeholder="Email">
+            <input type="password" id="registerPassword" placeholder="Password">
+            <input type="file" id="profilePic">
+            <button onclick="register()">Register</button>
+        </div>
+        <div id="loginForm" class="auth-box">
+            <h2>Login</h2>
+            <input type="email" id="loginEmail" placeholder="Email">
+            <input type="password" id="loginPassword" placeholder="Password">
+            <button onclick="login()">Login</button>
+            <button class="link-button" onclick="resetPassword()">Forgot Password?</button>
+        </div>
     </div>
 
-    <div id="searchSection">
-      <h3>Rechercher un ami</h3>
-      <input type="text" id="searchInput" placeholder="Email ou pseudo">
-      <button onclick="searchUser()">Rechercher</button>
-      <div id="searchResults"></div>
+    <div id="chatContainer" class="chat-container" style="display: none;">
+        <div id="topBar" class="top-bar">
+            <input type="text" id="searchInput" placeholder="Search users">
+            <button onclick="searchFriend()">Search</button>
+            <button onclick="loadAllUsers()">All Users</button>
+            <div id="currentUser" class="user-info"></div>
+        </div>
+
+        <div id="friendsList" class="friends-list"></div>
+
+        <div id="messages" class="messages"></div>
+
+        <div id="sendMsg" class="send-msg">
+            <input type="text" id="msgTxt" placeholder="Type your message...">
+            <input type="submit" id="msgBtn" value="Send" onclick="module.sendMsg()">
+        </div>
     </div>
 
-    <div id="chatSection">
-      <h2 id="chatWith"></h2>
-      <div id="messages"></div>
-      <input type="text" id="msgInput" placeholder="Tapez votre message">
-      <button onclick="sendMessage()">Envoyer</button>
-    </div>
+    <script>
+        module = {};
+    </script>
 
-    <div id="userListSection">
-      <h3>Utilisateurs du site</h3>
-      <div id="userList"></div>
-    </div>
-  </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
+        import { getDatabase, ref, set, get, child, onChildAdded } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+        import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-storage.js";
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-    import { getDatabase, ref, set, push, onChildAdded, get, child } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
+        const firebaseConfig = {
+            apiKey: "AIzaSyCDbP-yKWXD4L1HowJt3ZSyEpMUMrzJZjI",
+            authDomain: "tafitafaceboot.firebaseapp.com",
+            databaseURL: "https://tafitafaceboot-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "tafitafaceboot",
+            storageBucket: "tafitafaceboot.appspot.com",
+            messagingSenderId: "893787639070",
+            appId: "1:893787639070:web:e5dd2798f3cb2b6fa24d0f",
+            measurementId: "G-H64J1YYPYE"
+        };
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCDbP-yKWXD4L1HowJt3ZSyEpMUMrzJZjI",
-      authDomain: "tafitafaceboot.firebaseapp.com",
-      databaseURL: "https://tafitafaceboot-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "tafitafaceboot",
-      storageBucket: "tafitafaceboot.appspot.com",
-      messagingSenderId: "893787639070",
-      appId: "1:893787639070:web:e5dd2798f3cb2b6fa24d0f",
-      measurementId: "G-H64J1YYPYE"
-    };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
+        const storage = getStorage(app);
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const auth = getAuth();
+        let currentUserEmail = "";
+        let currentUsername = "";
+        let receiver = "";
 
-    const authSection = document.getElementById('authSection');
-    const chatSection = document.getElementById('chatSection');
-    const searchSection = document.getElementById('searchSection');
-    const userListSection = document.getElementById('userListSection');
-    const messages = document.getElementById('messages');
-    const chatWith = document.getElementById('chatWith');
-    let currentUser = null;
-    let currentChat = null;
-
-    onAuthStateChanged(auth, user => {
-      if (user) {
-        currentUser = user;
-        authSection.style.display = 'none';
-        searchSection.style.display = 'block';
-        loadUserList();
-      } else {
-        authSection.style.display = 'block';
-        searchSection.style.display = 'none';
-        chatSection.style.display = 'none';
-      }
-    });
-
-    window.auth = async function() {
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      const pseudo = document.getElementById('pseudo').value;
-      try {
-        const result = await signInWithEmailAndPassword(auth, email, password);
-      } catch (e) {
-        const result = await createUserWithEmailAndPassword(auth, email, password);
-        set(ref(db, 'users/' + result.user.uid), {
-          email: email,
-          pseudo: pseudo || email.split('@')[0],
-          uid: result.user.uid
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                currentUserEmail = user.email;
+                get(child(ref(db), "users/" + encodeEmail(currentUserEmail))).then(snapshot => {
+                    if (snapshot.exists()) {
+                        currentUsername = snapshot.val().username || currentUserEmail;
+                        document.getElementById("currentUser").textContent = `Logged in as ${currentUsername}`;
+                        showChat();
+                    }
+                });
+            }
         });
-      }
-    }
 
-    window.resetPassword = function() {
-      const email = document.getElementById('email').value;
-      if (!email) return alert("Entrez votre email");
-      sendPasswordResetEmail(auth, email)
-        .then(() => alert("Lien de réinitialisation envoyé."))
-        .catch(err => alert(err.message));
-    }
+        window.register = async function () {
+            const email = document.getElementById("registerEmail").value.trim();
+            const password = document.getElementById("registerPassword").value.trim();
+            const username = document.getElementById("registerUsername").value.trim();
+            const profilePic = document.getElementById("profilePic").files[0];
 
-    window.searchUser = async function() {
-      const input = document.getElementById('searchInput').value.toLowerCase();
-      const resultsDiv = document.getElementById('searchResults');
-      resultsDiv.innerHTML = '';
-      const snap = await get(ref(db, 'users'));
-      snap.forEach(child => {
-        const u = child.val();
-        if (u.email.toLowerCase().includes(input) || u.pseudo.toLowerCase().includes(input)) {
-          const el = document.createElement('div');
-          el.className = 'user-card';
-          el.innerText = u.pseudo + ' (' + u.email + ')';
-          el.onclick = () => openChat(u);
-          resultsDiv.appendChild(el);
+            if (!email || !password || !username) return alert("Fill all required fields");
+
+            try {
+                const cred = await createUserWithEmailAndPassword(auth, email, password);
+                let photoURL = "";
+                if (profilePic) {
+                    const picRef = sRef(storage, `profilePics/${encodeEmail(email)}`);
+                    await uploadBytes(picRef, profilePic);
+                    photoURL = await getDownloadURL(picRef);
+                }
+                await set(ref(db, "users/" + encodeEmail(email)), { email, username, photoURL });
+            } catch (e) {
+                alert(e.message);
+            }
+        };
+
+        window.login = async function () {
+            const email = document.getElementById("loginEmail").value.trim();
+            const password = document.getElementById("loginPassword").value.trim();
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (e) {
+                alert(e.message);
+            }
+        };
+
+        window.resetPassword = function () {
+            const email = prompt("Enter your email to reset password:");
+            if (email) sendPasswordResetEmail(auth, email).then(() => alert("Check your email."));
+        };
+
+        function showChat() {
+            document.getElementById("authContainer").style.display = "none";
+            document.getElementById("chatContainer").style.display = "block";
         }
-      });
-    }
 
-    function openChat(user) {
-      currentChat = user;
-      chatWith.innerText = 'Discussion avec ' + user.pseudo;
-      chatSection.style.display = 'block';
-      messages.innerHTML = '';
+        window.searchFriend = function () {
+            const input = document.getElementById("searchInput").value.trim().toLowerCase();
+            const list = document.getElementById("friendsList");
+            list.innerHTML = "";
+            get(child(ref(db), "users")).then(snapshot => {
+                snapshot.forEach(user => {
+                    const data = user.val();
+                    if (data.email.toLowerCase().includes(input) || (data.username && data.username.toLowerCase().includes(input))) {
+                        const btn = document.createElement("button");
+                        btn.textContent = `Chat with ${data.username || data.email}`;
+                        btn.onclick = () => {
+                            receiver = data.email;
+                            loadConversation();
+                        };
+                        list.appendChild(btn);
+                    }
+                });
+            });
+        };
 
-      const chatId = [currentUser.uid, user.uid].sort().join('_');
-      onChildAdded(ref(db, 'chats/' + chatId), (data) => {
-        const msg = data.val();
-        const div = document.createElement('div');
-        div.className = 'message ' + (msg.from === currentUser.uid ? 'you' : 'other');
-        div.innerText = msg.text;
-        messages.appendChild(div);
-        messages.scrollTop = messages.scrollHeight;
-      });
-    }
+        window.loadAllUsers = function () {
+            const list = document.getElementById("friendsList");
+            list.innerHTML = "";
+            get(child(ref(db), "users")).then(snapshot => {
+                snapshot.forEach(user => {
+                    const data = user.val();
+                    if (data.email !== currentUserEmail) {
+                        const btn = document.createElement("button");
+                        btn.textContent = `${data.username || data.email}`;
+                        btn.onclick = () => {
+                            receiver = data.email;
+                            loadConversation();
+                        };
+                        list.appendChild(btn);
+                    }
+                });
+            });
+        };
 
-    window.sendMessage = function() {
-      const text = document.getElementById('msgInput').value;
-      if (!text || !currentChat) return;
-      const chatId = [currentUser.uid, currentChat.uid].sort().join('_');
-      push(ref(db, 'chats/' + chatId), {
-        from: currentUser.uid,
-        to: currentChat.uid,
-        text: text,
-        timestamp: Date.now()
-      });
-      document.getElementById('msgInput').value = '';
-    }
-
-    window.showUserList = async function() {
-      userListSection.style.display = userListSection.style.display === 'block' ? 'none' : 'block';
-      const listDiv = document.getElementById('userList');
-      listDiv.innerHTML = '';
-      const snap = await get(ref(db, 'users'));
-      snap.forEach(child => {
-        const u = child.val();
-        if (u.uid !== currentUser.uid) {
-          const el = document.createElement('div');
-          el.className = 'user-card';
-          el.innerText = u.pseudo;
-          el.onclick = () => openChat(u);
-          listDiv.appendChild(el);
+        function encodeEmail(email) {
+            return email.replace(/\./g, "(dot)");
         }
-      });
-    }
-  </script>
+
+        const msgTxt = document.getElementById('msgTxt');
+        const messages = document.getElementById('messages');
+
+        function getChatId(user1, user2) {
+            return [user1, user2].sort().join("-").replace(/\./g, "(dot)");
+        }
+
+        function loadConversation() {
+            messages.innerHTML = "";
+            const chatId = getChatId(currentUserEmail, receiver);
+            const chatRef = ref(db, "privateMessages/" + chatId);
+
+            onChildAdded(chatRef, (data) => {
+                const msg = data.val();
+                const who = msg.sender === currentUserEmail ? "You" : msg.sender;
+                const css = msg.sender === currentUserEmail ? "me" : "notMe";
+                messages.innerHTML += `<div class="${css}">${who}: ${msg.msg}</div>`;
+                messages.scrollTop = messages.scrollHeight;
+            });
+        }
+
+        module.sendMsg = function () {
+            if (!receiver) return alert("Select a friend to chat with");
+            const msg = msgTxt.value.trim();
+            if (!msg) return;
+            const timestamp = new Date().getTime();
+            const chatId = getChatId(currentUserEmail, receiver);
+            set(ref(db, "privateMessages/" + chatId + "/" + timestamp), {
+                msg: msg,
+                sender: currentUserEmail
+            });
+            msgTxt.value = "";
+        };
+    </script>
 </body>
 </html>
