@@ -1,68 +1,97 @@
+/* Global */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", sans-serif;
+  background: #f0f2f5;
+  color: #333;
 }
 
-#app {
-    max-width: 400px;
-    margin: auto;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+h2, h3 {
+  text-align: center;
+  color: #444;
 }
 
-h2 {
-    text-align: center;
+form, #chatSection, #usersList {
+  max-width: 400px;
+  margin: 20px auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
+/* Inputs & Buttons */
+input[type="text"],
 input[type="email"],
 input[type="password"],
-input[type="text"] {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+input[type="file"],
+#messageInput {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  box-sizing: border-box;
 }
 
 button {
-    width: 100%;
-    padding: 10px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
+  background-color: #00bfa5;
+  color: white;
+  padding: 12px;
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s;
 }
 
 button:hover {
-    background-color: #45a049;
+  background-color: #009e8e;
 }
 
+/* User List */
+#usersList {
+  list-style: none;
+  padding: 0;
+}
+
+#usersList li {
+  padding: 12px;
+  margin: 8px 0;
+  background: #e0f7fa;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+#usersList li:hover {
+  background: #b2ebf2;
+}
+
+/* Chat section */
 #messages {
-    height: 200px;
-    overflow-y: scroll;
-    margin-bottom: 10px;
+  background: #fafafa;
+  padding: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  margin-bottom: 12px;
 }
 
-.message {
-    padding: 8px;
-    margin-bottom: 10px;
-    border-radius: 8px;
+#messages p {
+  background: #e3f2fd;
+  padding: 10px;
+  border-radius: 8px;
+  margin: 6px 0;
 }
 
-.sent {
-    background-color: #e1ffc7;
-    text-align: right;
-}
-
-.received {
-    background-color: #e9e9e9;
-}
-
-#userResults {
-    margin-top: 20px;
+/* Responsive */
+@media (max-width: 500px) {
+  form, #chatSection, #usersList {
+    margin: 10px;
+    padding: 16px;
+  }
 }
