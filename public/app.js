@@ -3,19 +3,20 @@ const firebaseConfig = {
     apiKey: "AIzaSyCDbP-yKWXD4L1HowJt3ZSyEpMUMrzJZjI",
     authDomain: "tafitafaceboot.firebaseapp.com",
     projectId: "tafitafaceboot",
-    storageBucket: "tafitafaceboot.firebasestorage.app",
+    storageBucket: "tafitafaceboot.appspot.com",
     messagingSenderId: "893787639070",
     appId: "1:893787639070:web:e5dd2798f3cb2b6fa24d0f",
     measurementId: "G-H64J1YYPYE"
 };
 
+// Initialisation de Firebase
 const app = firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 const usersRef = db.collection("users");
 const messagesRef = db.collection("messages");
 
-// Éléments HTML
+// Élément HTML
 const loginPage = document.getElementById("loginPage");
 const searchPage = document.getElementById("searchPage");
 const chatPage = document.getElementById("chatPage");
