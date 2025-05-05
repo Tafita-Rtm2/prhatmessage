@@ -1,170 +1,189 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Private Chat App</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <title>Chat App</title>
+  <link rel="stylesheet" href="styles.css">
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
+    import { getDatabase, ref, set, get, onChildAdded, onChildRemoved, remove, child } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+    import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-storage.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCJ81pHD2-xnKczsJyrWwIZao-rypkeDOo",
+      authDomain: "coder-8ddcf.firebaseapp.com",
+      projectId: "coder-8ddcf",
+      storageBucket: "coder-8ddcf.appspot.com",
+      messagingSenderId: "603139974872",
+      appId: "1:603139974872:web:98026f933d6f421116d9ad"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+    const storage = getStorage(app);
+
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const chatInterface = document.getElementById('chatInterface');
+    const msgTxt = document.getElementById('msgTxt');
+    const messages = document.getElementById('messages');
+    const receiverInput = document.getElementById('receiverName');
+    const usersList = document.getElementById('allUsersList');
+    const profilePicInput = document.getElementById('profilePic');
+
+    let currentUser = null;
+    let currentPseudo = null;
+    let receiver = "";
+
+    function getChatId(user1, user2) {
+      return [user1, user2].sort().join("-");
+    }
+
+    function renderMessage(data, senderId) {
+      const msg = data.val();
+      const who = msg.sender === senderId ? "You" : msg.pseudo;
+      const css = msg.sender === senderId ? "me" : "notMe";
+      const el = document.createElement('div');
+      el.className = "outer";
+      el.id = data.key;
+      el.innerHTML = `<div class="${css}">${who}: ${msg.msg} ${(msg.sender === senderId) ? `<button onclick="deleteMsg('${getChatId(senderId, receiver)}', '${data.key}')">DELETE</button>` : ""}</div>`;
+      messages.appendChild(el);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function loadConversation() {
+      messages.innerHTML = "";
+      const chatId = getChatId(currentUser.uid, receiver);
+      const chatRef = ref(db, "privateMessages/" + chatId);
+
+      onChildAdded(chatRef, (data) => {
+        renderMessage(data, currentUser.uid);
+      });
+
+      onChildRemoved(chatRef, (data) => {
+        const el = document.getElementById(data.key);
+        if (el) el.remove();
+      });
+    }
+
+    window.deleteMsg = function(chatId, key) {
+      remove(ref(db, `privateMessages/${chatId}/${key}`));
+    }
+
+    window.sendMsg = function() {
+      if (!receiver) return alert("Please select a user to chat with");
+      const text = msgTxt.value.trim();
+      if (!text) return;
+
+      const chatId = getChatId(currentUser.uid, receiver);
+      const timestamp = new Date().getTime();
+      set(ref(db, `privateMessages/${chatId}/${timestamp}`), {
+        msg: text,
+        sender: currentUser.uid,
+        pseudo: currentPseudo
+      });
+      msgTxt.value = "";
+    }
+
+    loginForm.onsubmit = (e) => {
+      e.preventDefault();
+      const email = loginForm.email.value;
+      const password = loginForm.password.value;
+      signInWithEmailAndPassword(auth, email, password)
+        .catch(err => alert(err.message));
+    };
+
+    registerForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const email = registerForm.email.value;
+      const password = registerForm.password.value;
+      const pseudo = registerForm.pseudo.value;
+      const file = profilePicInput.files[0];
+
+      try {
+        const userCred = await createUserWithEmailAndPassword(auth, email, password);
+        const uid = userCred.user.uid;
+        let photoURL = "";
+
+        if (file) {
+          const fileRef = sRef(storage, `profiles/${uid}`);
+          await uploadBytes(fileRef, file);
+          photoURL = await getDownloadURL(fileRef);
+        }
+
+        await set(ref(db, `users/${uid}`), { email, pseudo, photoURL });
+      } catch (err) {
+        alert(err.message);
+      }
+    };
+
+    document.getElementById('resetPass').onclick = () => {
+      const email = prompt("Enter your email to reset password");
+      if (email) sendPasswordResetEmail(auth, email).then(() => alert("Email sent"));
+    };
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUser = user;
+        const snap = await get(ref(db, `users/${user.uid}`));
+        currentPseudo = snap.val().pseudo;
+        loginForm.style.display = "none";
+        registerForm.style.display = "none";
+        chatInterface.style.display = "block";
+        loadAllUsers();
+      }
+    });
+
+    function loadAllUsers() {
+      get(ref(db, 'users')).then(snapshot => {
+        usersList.innerHTML = "";
+        snapshot.forEach(child => {
+          const u = child.val();
+          if (child.key !== currentUser.uid) {
+            const btn = document.createElement('button');
+            btn.textContent = u.pseudo;
+            btn.onclick = () => {
+              receiver = child.key;
+              loadConversation();
+            };
+            usersList.appendChild(btn);
+          }
+        });
+      });
+    }
+  </script>
 </head>
 <body>
-    <div id="authContainer">
-        <div id="loginForm">
-            <h2>Login</h2>
-            <input type="email" id="loginEmail" placeholder="Email">
-            <button onclick="login()">Login</button>
-        </div>
+  <form id="loginForm">
+    <h2>Connexion</h2>
+    <input type="email" name="email" placeholder="Email" required><br>
+    <input type="password" name="password" placeholder="Mot de passe" required><br>
+    <button type="submit">Se connecter</button>
+    <button type="button" id="resetPass">Mot de passe oublié ?</button>
+  </form>
 
-        <div id="registerForm">
-            <h2>Register</h2>
-            <input type="email" id="registerEmail" placeholder="Email">
-            <button onclick="register()">Register</button>
-        </div>
+  <form id="registerForm">
+    <h2>Inscription</h2>
+    <input type="email" name="email" placeholder="Email" required><br>
+    <input type="password" name="password" placeholder="Mot de passe" required><br>
+    <input type="text" name="pseudo" placeholder="Pseudo" required><br>
+    <input type="file" id="profilePic" accept="image/*"><br>
+    <button type="submit">Créer un compte</button>
+  </form>
+
+  <div id="chatInterface" style="display:none">
+    <div id="topBar">
+      <img src="rtm.jpg" style="width:30px;height:30px;float:right;cursor:pointer;" onclick="document.getElementById('allUsersList').style.display='block'">
+      <input type="text" id="receiverName" placeholder="Nom de l'ami... (cliquez sur la liste à droite)">
     </div>
-
-    <div id="chatContainer" style="display: none;">
-        <div id="topBar">
-            <input type="text" id="searchEmail" placeholder="Search friend by email">
-            <button onclick="searchFriend()">Search</button>
-        </div>
-
-        <div id="friendsList"></div>
-
-        <div id="messages"></div>
-
-        <div id="sendMsg">
-            <input type="text" id="msgTxt" placeholder="Enter your message...">
-            <input type="submit" id="msgBtn" value="Send" onclick="module.sendMsg()">
-        </div>
+    <div id="allUsersList" style="display:none; position:fixed; right:0; top:50px; background:white; border:1px solid gray;"></div>
+    <div id="messages"></div>
+    <div id="sendMsg">
+      <input type="text" id="msgTxt" placeholder="Votre message...">
+      <button onclick="sendMsg()">Envoyer</button>
     </div>
-
-    <script>
-        module = {};
-    </script>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-        import { getDatabase, ref, set, remove, onChildAdded, onChildRemoved, get, child } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyCJ81pHD2-xnKczsJyrWwIZao-rypkeDOo",
-            authDomain: "coder-8ddcf.firebaseapp.com",
-            projectId: "coder-8ddcf",
-            storageBucket: "coder-8ddcf.appspot.com",
-            messagingSenderId: "603139974872",
-            appId: "1:603139974872:web:98026f933d6f421116d9ad"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        let senderEmail = sessionStorage.getItem("email");
-        let receiver = "";
-
-        if (senderEmail) showChat();
-
-        window.register = function () {
-            const email = document.getElementById("registerEmail").value.trim();
-            if (!email) return alert("Enter email");
-            set(ref(db, "users/" + encodeEmail(email)), { email });
-            sessionStorage.setItem("email", email);
-            senderEmail = email;
-            showChat();
-        };
-
-        window.login = function () {
-            const email = document.getElementById("loginEmail").value.trim();
-            if (!email) return alert("Enter email");
-            get(child(ref(db), "users/" + encodeEmail(email))).then(snapshot => {
-                if (snapshot.exists()) {
-                    sessionStorage.setItem("email", email);
-                    senderEmail = email;
-                    showChat();
-                } else {
-                    alert("User not found");
-                }
-            });
-        };
-
-        function showChat() {
-            document.getElementById("authContainer").style.display = "none";
-            document.getElementById("chatContainer").style.display = "block";
-        }
-
-        window.searchFriend = function () {
-            const searchEmail = document.getElementById("searchEmail").value.trim();
-            if (!searchEmail) return;
-            const encoded = encodeEmail(searchEmail);
-            get(child(ref(db), "users/" + encoded)).then(snapshot => {
-                const list = document.getElementById("friendsList");
-                list.innerHTML = "";
-                if (snapshot.exists()) {
-                    const btn = document.createElement("button");
-                    btn.textContent = "Chat with " + searchEmail;
-                    btn.onclick = () => {
-                        receiver = searchEmail;
-                        loadConversation();
-                    };
-                    list.appendChild(btn);
-                } else {
-                    list.textContent = "User not found.";
-                }
-            });
-        };
-
-        function encodeEmail(email) {
-            return email.replace(/\./g, "(dot)");
-        }
-
-        const msgTxt = document.getElementById('msgTxt');
-        const messages = document.getElementById('messages');
-
-        function getChatId(user1, user2) {
-            return [user1, user2].sort().join("-").replace(/\./g, "(dot)");
-        }
-
-        function loadConversation() {
-            messages.innerHTML = "";
-            const chatId = getChatId(senderEmail, receiver);
-            const chatRef = ref(db, "privateMessages/" + chatId);
-
-            onChildAdded(chatRef, (data) => {
-                const msg = data.val();
-                const who = msg.sender === senderEmail ? "you" : msg.sender;
-                const css = msg.sender === senderEmail ? "me" : "notMe";
-
-                messages.innerHTML += `<div class="outer" id="${data.key}">
-                    <div id="inner" class="${css}">${who} : ${msg.msg}
-                    ${msg.sender === senderEmail ? `<button onclick="module.dltMsg('${chatId}','${data.key}')">DELETE</button>` : ""}
-                    </div></div>`;
-                messages.scrollTop = messages.scrollHeight;
-            });
-
-            onChildRemoved(chatRef, (data) => {
-                const msgBox = document.getElementById(data.key);
-                if (msgBox) messages.removeChild(msgBox);
-            });
-        }
-
-        module.sendMsg = function () {
-            if (!receiver) {
-                alert("Please search and select a friend first.");
-                return;
-            }
-            const msg = msgTxt.value.trim();
-            if (msg === "") return;
-
-            const timestamp = new Date().getTime();
-            const chatId = getChatId(senderEmail, receiver);
-
-            set(ref(db, "privateMessages/" + chatId + "/" + timestamp), {
-                msg: msg,
-                sender: senderEmail
-            });
-
-            msgTxt.value = "";
-        };
-
-        module.dltMsg = function (chatId, key) {
-            remove(ref(db, "privateMessages/" + chatId + "/" + key));
-        };
-    </script>
+  </div>
 </body>
 </html>
