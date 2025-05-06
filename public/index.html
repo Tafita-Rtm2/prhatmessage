@@ -1,69 +1,169 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Chat App</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Private Chat App</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap">
+  <style>
+    body {
+      font-family: 'Orbitron', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #1e1e2f, #2e2e4f);
+      color: #fff;
+    }
+    .auth-container, .chat-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+    .auth-box {
+      background: #292942;
+      border-radius: 10px;
+      padding: 2rem;
+      margin: 1rem;
+      box-shadow: 0 0 10px #444;
+    }
+    .auth-box input, .auth-box button {
+      display: block;
+      margin: 10px 0;
+      padding: 10px;
+      width: 100%;
+      border: none;
+      border-radius: 5px;
+    }
+    .auth-box input {
+      background: #1f1f30;
+      color: #fff;
+    }
+    .auth-box button {
+      background: #3a3af3;
+      color: white;
+      cursor: pointer;
+    }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      background: #1c1c2d;
+      padding: 1rem;
+    }
+    .top-bar input {
+      padding: 0.5rem;
+      border-radius: 5px;
+      border: none;
+      width: 200px;
+    }
+    .friends-list, .messages {
+      width: 100%;
+      max-height: 300px;
+      overflow-y: auto;
+      margin: 1rem 0;
+    }
+    .send-msg {
+      display: flex;
+      width: 100%;
+      justify-content: space-between;
+    }
+    .send-msg input[type="text"] {
+      flex: 1;
+      margin-right: 1rem;
+      padding: 0.5rem;
+      border-radius: 5px;
+      border: none;
+    }
+    .send-msg input[type="submit"] {
+      padding: 0.5rem 1rem;
+      background: #3a3af3;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    .me, .notMe {
+      padding: 10px;
+      margin: 5px;
+      border-radius: 5px;
+      max-width: 70%;
+    }
+    .me {
+      background: #3a3af3;
+      align-self: flex-end;
+    }
+    .notMe {
+      background: #555;
+    }
+    .user-info img {
+      height: 30px;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+    #settingsContainer {
+      display: none;
+      margin-top: 1rem;
+    }
+    .online-dot {
+      height: 10px;
+      width: 10px;
+      background-color: #0f0;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 5px;
+    }
+  </style>
 </head>
 <body>
-  <!-- Auth Container -->
-  <div id="authContainer">
-    <div>
-      <h2>Register</h2>
-      <input type="text" id="registerUsername" placeholder="Username" />
-      <input type="email" id="registerEmail" placeholder="Email" />
-      <input type="password" id="registerPassword" placeholder="Password" />
-      <input type="file" id="profilePic" />
+  <div id="authContainer" class="auth-container">
+    <div class="auth-box">
+      <h2>Create Account</h2>
+      <input type="text" id="registerUsername" placeholder="Username">
+      <input type="email" id="registerEmail" placeholder="Email">
+      <input type="password" id="registerPassword" placeholder="Password">
+      <input type="file" id="profilePic">
       <button onclick="register()">Register</button>
     </div>
-    <div>
+    <div class="auth-box">
       <h2>Login</h2>
-      <input type="email" id="loginEmail" placeholder="Email" />
-      <input type="password" id="loginPassword" placeholder="Password" />
+      <input type="email" id="loginEmail" placeholder="Email">
+      <input type="password" id="loginPassword" placeholder="Password">
       <button onclick="login()">Login</button>
       <button onclick="resetPassword()">Forgot Password?</button>
     </div>
   </div>
 
-  <!-- Chat Interface -->
-  <div id="chatContainer" style="display: none;">
-    <div>
-      <input type="text" id="searchInput" placeholder="Search by email or username" />
-      <button onclick="searchFriend()">Search</button>
-      <button onclick="loadAllUsers()">All Users</button>
-      <div id="currentUser"></div>
+  <div id="chatContainer" class="chat-container" style="display: none;">
+    <div class="top-bar">
+      <div>
+        <input type="text" id="searchInput" placeholder="Search users...">
+        <button onclick="searchFriend()">Search</button>
+        <button onclick="loadAllUsers()">All Users</button>
+        <button onclick="logout()">Logout</button>
+        <button onclick="toggleSettings()">Settings</button>
+      </div>
+      <div id="currentUser" class="user-info"></div>
     </div>
-    <div id="friendsList"></div>
-    <div id="messages"></div>
-    <div>
-      <input type="text" id="msgTxt" placeholder="Your message..." />
-      <button onclick="sendMsg()">Send</button>
+
+    <div id="settingsContainer">
+      <h3>Update Profile</h3>
+      <input type="text" id="newUsername" placeholder="New Username">
+      <input type="file" id="newProfilePic">
+      <button onclick="updateProfile()">Update</button>
+    </div>
+
+    <div id="friendsList" class="friends-list"></div>
+    <div id="messages" class="messages"></div>
+    <div class="send-msg">
+      <input type="text" id="msgTxt" placeholder="Type your message...">
+      <input type="submit" value="Send" onclick="sendMsg()">
     </div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-    import {
-      getAuth,
-      createUserWithEmailAndPassword,
-      signInWithEmailAndPassword,
-      sendPasswordResetEmail,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
-    import {
-      getDatabase,
-      ref,
-      set,
-      get,
-      child,
-      onChildAdded
-    } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
-    import {
-      getStorage,
-      ref as sRef,
-      uploadBytes,
-      getDownloadURL
-    } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-storage.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
+    import { getDatabase, ref, set, get, child, onChildAdded, update } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+    import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCDbP-yKWXD4L1HowJt3ZSyEpMUMrzJZjI",
@@ -80,146 +180,143 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
     const storage = getStorage(app);
-
-    let currentUserEmail = "";
-    let currentUsername = "";
-    let receiver = "";
+    let currentUserEmail = "", currentUsername = "", receiver = "";
 
     function encodeEmail(email) {
-      return email.replace(/\./g, "(dot)");
+      return email.replace(/\./g, '(dot)');
     }
 
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, user => {
       if (user) {
         currentUserEmail = user.email;
         get(child(ref(db), "users/" + encodeEmail(currentUserEmail))).then(snapshot => {
-          if (snapshot.exists()) {
-            currentUsername = snapshot.val().username;
-            showChat();
-            document.getElementById("currentUser").textContent = "Logged in as " + currentUsername;
-          }
+          const data = snapshot.val();
+          currentUsername = data.username || user.email;
+          const photo = data.photoURL ? `<img src="${data.photoURL}" />` : "";
+          document.getElementById("currentUser").innerHTML = `${photo} ${currentUsername}`;
+          showChat();
         });
+        set(ref(db, `activeUsers/${encodeEmail(user.email)}`), true);
       }
     });
 
-    window.register = async function () {
-      const email = document.getElementById("registerEmail").value;
-      const password = document.getElementById("registerPassword").value;
-      const username = document.getElementById("registerUsername").value;
-      const profilePic = document.getElementById("profilePic").files[0];
+    window.register = async () => {
+      const email = registerEmail.value, pass = registerPassword.value, username = registerUsername.value;
+      const file = profilePic.files[0];
+      const cred = await createUserWithEmailAndPassword(auth, email, pass);
+      let photoURL = "";
+      if (file) {
+        const fileRef = sRef(storage, 'profilePics/' + encodeEmail(email));
+        await uploadBytes(fileRef, file);
+        photoURL = await getDownloadURL(fileRef);
+      }
+      await set(ref(db, "users/" + encodeEmail(email)), { email, username, photoURL });
+      alert("Account created. You can now login.");
+    };
 
+    window.login = async () => {
       try {
-        const cred = await createUserWithEmailAndPassword(auth, email, password);
-        let photoURL = "";
-        if (profilePic) {
-          const picRef = sRef(storage, `profilePics/${encodeEmail(email)}`);
-          await uploadBytes(picRef, profilePic);
-          photoURL = await getDownloadURL(picRef);
-        }
-        await set(ref(db, "users/" + encodeEmail(email)), {
-          email,
-          username,
-          photoURL
-        });
-        alert("Registered! Now login.");
-      } catch (e) {
-        alert("Register error: " + e.message);
+        await signInWithEmailAndPassword(auth, loginEmail.value, loginPassword.value);
+      } catch (err) {
+        alert("Login failed: " + err.message);
       }
     };
 
-    window.login = async function () {
-      const email = document.getElementById("loginEmail").value;
-      const password = document.getElementById("loginPassword").value;
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-      } catch (e) {
-        alert("Login failed: " + e.message);
-      }
+    window.logout = async () => {
+      await signOut(auth);
+      location.reload();
     };
 
-    window.resetPassword = async function () {
-      const email = prompt("Enter your email:");
-      if (email) {
-        await sendPasswordResetEmail(auth, email);
-        alert("Password reset email sent.");
-      }
+    window.resetPassword = () => {
+      const email = prompt("Enter email to reset password:");
+      if (email) sendPasswordResetEmail(auth, email).then(() => alert("Check your inbox."));
     };
 
     function showChat() {
-      document.getElementById("authContainer").style.display = "none";
-      document.getElementById("chatContainer").style.display = "block";
+      authContainer.style.display = "none";
+      chatContainer.style.display = "flex";
     }
 
-    window.searchFriend = async function () {
-      const input = document.getElementById("searchInput").value.toLowerCase();
-      const list = document.getElementById("friendsList");
-      list.innerHTML = "";
-      const snapshot = await get(child(ref(db), "users"));
-      snapshot.forEach(child => {
-        const user = child.val();
-        if (
-          (user.username && user.username.toLowerCase().includes(input)) ||
-          (user.email && user.email.toLowerCase().includes(input))
-        ) {
-          if (user.email !== currentUserEmail) {
-            const btn = document.createElement("button");
-            btn.textContent = user.username || user.email;
-            btn.onclick = () => {
-              receiver = user.email;
-              loadMessages();
-            };
-            list.appendChild(btn);
+    window.searchFriend = () => {
+      friendsList.innerHTML = "";
+      const query = searchInput.value.toLowerCase();
+      get(child(ref(db), "users")).then(snapshot => {
+        snapshot.forEach(child => {
+          const user = child.val();
+          if (user.email !== currentUserEmail &&
+              (user.email.toLowerCase().includes(query) || user.username.toLowerCase().includes(query))) {
+            const div = document.createElement("div");
+            div.innerHTML = `<span class="online-dot"></span> ${user.username} <img src="${user.photoURL || ''}" height="30">`;
+            div.onclick = () => { receiver = user.email; loadChat(); };
+            friendsList.appendChild(div);
           }
-        }
+        });
       });
     };
 
-    window.loadAllUsers = async function () {
-      const list = document.getElementById("friendsList");
-      list.innerHTML = "";
-      const snapshot = await get(child(ref(db), "users"));
-      snapshot.forEach(child => {
-        const user = child.val();
-        if (user.email !== currentUserEmail) {
-          const btn = document.createElement("button");
-          btn.textContent = user.username || user.email;
-          btn.onclick = () => {
-            receiver = user.email;
-            loadMessages();
-          };
-          list.appendChild(btn);
-        }
+    window.loadAllUsers = () => {
+      friendsList.innerHTML = "";
+      get(child(ref(db), "users")).then(snapshot => {
+        snapshot.forEach(child => {
+          const user = child.val();
+          if (user.email !== currentUserEmail) {
+            const div = document.createElement("div");
+            div.innerHTML = `<span class="online-dot"></span> ${user.username} <img src="${user.photoURL || ''}" height="30">`;
+            div.onclick = () => { receiver = user.email; loadChat(); };
+            friendsList.appendChild(div);
+          }
+        });
       });
     };
 
-    function getChatId(user1, user2) {
-      return [user1, user2].sort().join("-").replace(/\./g, "(dot)");
+    function getChatId(u1, u2) {
+      return [encodeEmail(u1), encodeEmail(u2)].sort().join("-");
     }
 
-    function loadMessages() {
-      const msgBox = document.getElementById("messages");
-      msgBox.innerHTML = "";
-      const chatId = getChatId(currentUserEmail, receiver);
-      const chatRef = ref(db, "privateMessages/" + chatId);
-      onChildAdded(chatRef, (snapshot) => {
-        const msg = snapshot.val();
+    function loadChat() {
+      messages.innerHTML = "";
+      const chatRef = ref(db, "privateMessages/" + getChatId(currentUserEmail, receiver));
+      onChildAdded(chatRef, snap => {
+        const data = snap.val();
         const div = document.createElement("div");
-        div.textContent = (msg.sender === currentUserEmail ? "You" : msg.sender) + ": " + msg.msg;
-        msgBox.appendChild(div);
-        msgBox.scrollTop = msgBox.scrollHeight;
+        div.className = data.sender === currentUserEmail ? "me" : "notMe";
+        div.textContent = `${data.sender === currentUserEmail ? "You" : data.sender}: ${data.msg}`;
+        messages.appendChild(div);
+        messages.scrollTop = messages.scrollHeight;
       });
     }
 
-    window.sendMsg = function () {
-      const txt = document.getElementById("msgTxt").value;
-      if (!receiver || !txt.trim()) return;
-      const chatId = getChatId(currentUserEmail, receiver);
-      const timestamp = new Date().getTime();
-      set(ref(db, "privateMessages/" + chatId + "/" + timestamp), {
-        sender: currentUserEmail,
-        msg: txt.trim()
+    window.sendMsg = () => {
+      if (!receiver) return alert("Choose a friend");
+      const msg = msgTxt.value.trim();
+      if (!msg) return;
+      const time = Date.now();
+      set(ref(db, "privateMessages/" + getChatId(currentUserEmail, receiver) + "/" + time), {
+        msg, sender: currentUserEmail
       });
-      document.getElementById("msgTxt").value = "";
+      msgTxt.value = "";
+    };
+
+    window.toggleSettings = () => {
+      const el = document.getElementById("settingsContainer");
+      el.style.display = el.style.display === "none" ? "block" : "none";
+    };
+
+    window.updateProfile = async () => {
+      const newName = newUsername.value;
+      const file = newProfilePic.files[0];
+      let photoURL = "";
+      if (file) {
+        const fileRef = sRef(storage, "profilePics/" + encodeEmail(currentUserEmail));
+        await uploadBytes(fileRef, file);
+        photoURL = await getDownloadURL(fileRef);
+      }
+      await update(ref(db, "users/" + encodeEmail(currentUserEmail)), {
+        username: newName || currentUsername,
+        ...(photoURL && { photoURL })
+      });
+      alert("Profile updated.");
+      location.reload();
     };
   </script>
 </body>
